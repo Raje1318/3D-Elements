@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Metallic Cube — Instanced Explode</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; background: #050506; overflow: hidden; }
+  #scene { display: block; width: 100vw; height: 100vh; cursor: pointer; }
+  #hint {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255,255,255,0.35);
+    font: 400 12px/1 system-ui, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    pointer-events: none;
+    user-select: none;
+  }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div id="hint">Click to explode / reassemble</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+(function () {
+  /* ------------------------------------------------------------ */
+  /*  Config                                                       */
+  /* ------------------------------------------------------------ */
+  const CONFIG = {
+    assembly: {
+      size: 1.6,        // overall assembled bounding size
+      grid: 7,           // cubies per axis (7^3 = 343, trimmed to ~300)
+      targetCount: 300,
+      gap: 0.86,          // fraction of cell each cubie occupies (rubik's-cube-style seams)
+      color: 0xe7e9ec,
+      metalness: 1,
+      roughness: 0.18,
+      envMapIntensity: 1.6,
+      floatAmplitude: 0.15,
+      floatSpeed: 0.7,
+    },
+    tilt: { strength: 0.28, duration: 0.9 },
+    camera: { parallax: 0.6, duration: 1.1 },
+    explode: {
+      minDistance: 2.2,
+      maxDistance: 4.6,
+      minDuration: 1.1,
+      maxDuration: 1.6,
+      maxDelay: 0.4,
+      driftSpeed: 1.2,       // max radians/sec of continuous post-explosion tumble
+      floatAmpRange: [0.04, 0.09],
+      floatSpeedRange: [0.5, 1.1],
+    },
+    implode: {
+      minDuration: 0.9,
+      maxDuration: 1.25,
+      maxDelay: 0.25,
+    },
+    floorY: -1.6,
+  };
+
+  /* ------------------------------------------------------------ */
+  /*  Renderer / Scene / Camera                                    */
+  /* ------------------------------------------------------------ */
+  const canvas = document.getElementById('scene');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x050506);
+  scene.fog = new THREE.Fog(0x050506, 7, 20);
+
+  const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0.4, 7.5);
+
+  /* ------------------------------------------------------------ */
+  /*  Environment — small procedural room baked to IBL              */
+  /* ------------------------------------------------------------ */
+  function createEnvironment() {
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const envScene = new THREE.Scene();
+    const box = new THREE.BoxGeometry();
+    box.deleteAttribute('uv');
+
+    const room = new THREE.Mesh(box, new THREE.MeshStandardMaterial({ side: THREE.BackSide, color: 0x0a0a0c }));
+    room.scale.set(12, 12, 12);
+    envScene.add(room);
+
+    const panelA = new THREE.Mesh(box, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+    panelA.position.set(-2, 3, 2);
+    panelA.scale.set(1.4, 1.4, 0.1);
+    envScene.add(panelA);
+
+    const panelB = new THREE.Mesh(box, new THREE.MeshBasicMaterial({ color: 0x6f8cff }));
+    panelB.position.set(3, -2, -3);
+    panelB.scale.set(2.4, 0.15, 1.4);
+    envScene.add(panelB);
+
+    const panelC = new THREE.Mesh(box, new THREE.MeshBasicMaterial({ color: 0xffb37a }));
+    panelC.position.set(-3, -2.5, 3);
+    panelC.scale.set(0.15, 2.4, 2.4);
+    envScene.add(panelC);
+
+    const rt = pmrem.fromScene(envScene, 0.04);
+    pmrem.dispose();
+    return rt.texture;
+  }
+  scene.environment = createEnvironment();
+
+  /* ------------------------------------------------------------ */
+  /*  Lighting                                                      */
+  /* ------------------------------------------------------------ */
+  function createLighting() {
+    const hemi = new THREE.HemisphereLight(0x2a2f3a, 0x050506, 0.3);
+
+    const key = new THREE.DirectionalLight(0xffffff, 2.2);
+    key.position.set(4, 6, 3);
+    key.castShadow = true;
+    key.shadow.mapSize.set(2048, 2048);
+    key.shadow.bias = -0.0004;
+    key.shadow.camera.left = -6;
+    key.shadow.camera.right = 6;
+    key.shadow.camera.top = 6;
+    key.shadow.camera.bottom = -6;
+    key.shadow.camera.far = 24;
+
+    const fill = new THREE.DirectionalLight(0x6f8cff, 0.35);
+    fill.position.set(-4, 1.5, -2);
+
+    const rim = new THREE.SpotLight(0xffb37a, 3, 16, 0.5, 1);
+    rim.position.set(-2, 4, -4);
+
+    scene.add(hemi, key, fill, rim);
+  }
+  createLighting();
+
+  /* ------------------------------------------------------------ */
+  /*  Floor                                                         */
+  /* ------------------------------------------------------------ */
+  function createFloor() {
+    const geometry = new THREE.PlaneGeometry(50, 50);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0x0b0b0d,
+      roughness: 0.35,
+      metalness: 0.6,
+      envMapIntensity: 0.8,
+    });
+    const floor = new THREE.Mesh(geometry, material);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = CONFIG.floorY;
+    floor.receiveShadow = true;
+    scene.add(floor);
+  }
+  createFloor();
+
+  /* ------------------------------------------------------------ */
+  /*  Rig — float (bob) -> tilt (cursor lean) -> instanced cubies   */
+  /* ------------------------------------------------------------ */
+  const floatGroup = new THREE.Group();
+  const tiltGroup = new THREE.Group();
+  floatGroup.add(tiltGroup);
+  scene.add(floatGroup);
+
+  /* ------------------------------------------------------------ */
+  /*  Build ~300 grid positions inside the original cube's bounds   */
+  /* ------------------------------------------------------------ */
+  const { grid, size, targetCount, gap } = CONFIG.assembly;
+  const cellSize = size / grid;
+  const cubieSize = cellSize * gap;
+  const half = (grid - 1) / 2;
+
+  const allPositions = [];
+  for (let x = 0; x < grid; x++) {
+    for (let y = 0; y < grid; y++) {
+      for (let z = 0; z < grid; z++) {
+        allPositions.push(new THREE.Vector3(
+          (x - half) * cellSize,
+          (y - half) * cellSize,
+          (z - half) * cellSize
+        ));
+      }
+    }
+  }
+  // Shuffle then trim so the filled cube reads as ~300 cubies, not a full 343 grid
+  for (let i = allPositions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allPositions[i], allPositions[j]] = [allPositions[j], allPositions[i]];
+  }
+  const basePositions = allPositions.slice(0, targetCount);
+  const COUNT = basePositions.length;
+
+  /* ------------------------------------------------------------ */
+  /*  InstancedMesh + per-instance animation state                  */
+  /* ------------------------------------------------------------ */
+  const cubieGeometry = new THREE.BoxGeometry(cubieSize, cubieSize, cubieSize);
+  const cubieMaterial = new THREE.MeshPhysicalMaterial({
+    color: CONFIG.assembly.color,
+    metalness: CONFIG.assembly.metalness,
+    roughness: CONFIG.assembly.roughness,
+    envMapIntensity: CONFIG.assembly.envMapIntensity,
+    clearcoat: 0.4,
+    clearcoatRoughness: 0.25,
+    reflectivity: 1,
+  });
+  const instancedMesh = new THREE.InstancedMesh(cubieGeometry, cubieMaterial, COUNT);
+  instancedMesh.castShadow = true;
+  instancedMesh.receiveShadow = true;
+  tiltGroup.add(instancedMesh);
+
+  const dummy = new THREE.Object3D();
+
+  const instances = basePositions.map((base) => {
+    // Outward direction ~= radial from center, with jitter so the burst
+    // doesn't look perfectly spherical/uniform.
+    const dir = base.lengthSq() > 0.0001 ? base.clone().normalize() : new THREE.Vector3(0, 1, 0);
+    dir.x += (Math.random() - 0.5) * 0.6;
+    dir.y += (Math.random() - 0.5) * 0.6;
+    dir.z += (Math.random() - 0.5) * 0.6;
+    dir.normalize();
+
+    return {
+      base,
+      current: { x: base.x, y: base.y, z: base.z }, // tweened by GSAP
+      rot: { x: 0, y: 0, z: 0 },                       // tumble, reset to 0 on implode
+      dir,
+      distance: THREE.MathUtils.randFloat(CONFIG.explode.minDistance, CONFIG.explode.maxDistance),
+      driftSpeed: {
+        x: (Math.random() - 0.5) * CONFIG.explode.driftSpeed,
+        y: (Math.random() - 0.5) * CONFIG.explode.driftSpeed,
+        z: (Math.random() - 0.5) * CONFIG.explode.driftSpeed,
+      },
+      phase: Math.random() * Math.PI * 2,
+      floatAmp: THREE.MathUtils.randFloat(...CONFIG.explode.floatAmpRange),
+      floatSpeed: THREE.MathUtils.randFloat(...CONFIG.explode.floatSpeedRange),
+    };
+  });
+
+  // Seed initial matrices at rest (assembled cube)
+  instances.forEach((inst, i) => {
+    dummy.position.set(inst.current.x, inst.current.y, inst.current.z);
+    dummy.rotation.set(0, 0, 0);
+    dummy.updateMatrix();
+    instancedMesh.setMatrixAt(i, dummy.matrix);
+  });
+  instancedMesh.instanceMatrix.needsUpdate = true;
+
+  /* ------------------------------------------------------------ */
+  /*  Explode / implode — smooth, staggered, reversible              */
+  /* ------------------------------------------------------------ */
+  let exploded = false;
+  let driftActive = false; // continuous post-explosion tumble/float
+
+  function explode() {
+    if (exploded) return;
+    exploded = true;
+    driftActive = true;
+
+    instances.forEach((inst) => {
+      const delay = Math.random() * CONFIG.explode.maxDelay;
+      const duration = THREE.MathUtils.randFloat(CONFIG.explode.minDuration, CONFIG.explode.maxDuration);
+
+      gsap.to(inst.current, {
+        x: inst.base.x + inst.dir.x * inst.distance,
+        y: inst.base.y + inst.dir.y * inst.distance,
+        z: inst.base.z + inst.dir.z * inst.distance,
+        duration,
+        delay,
+        ease: 'power3.out',
+      });
+    });
+  }
+
+  function implode() {
+    if (!exploded) return;
+    exploded = false;
+    driftActive = false; // freeze tumble where it is, then ease back to 0 below
+
+    instances.forEach((inst) => {
+      const delay = Math.random() * CONFIG.implode.maxDelay;
+      const duration = THREE.MathUtils.randFloat(CONFIG.implode.minDuration, CONFIG.implode.maxDuration);
+
+      gsap.to(inst.current, {
+        x: inst.base.x,
+        y: inst.base.y,
+        z: inst.base.z,
+        duration,
+        delay,
+        ease: 'power3.inOut',
+      });
+      gsap.to(inst.rot, {
+        x: 0,
+        y: 0,
+        z: 0,
+        duration,
+        delay,
+        ease: 'power3.inOut',
+      });
+    });
+  }
+
+  window.addEventListener('click', () => (exploded ? implode() : explode()));
+
+  /* ------------------------------------------------------------ */
+  /*  Interaction — cursor tilt + camera parallax on the whole rig  */
+  /* ------------------------------------------------------------ */
+  const pointer = new THREE.Vector2();
+  const setTiltX = gsap.quickTo(tiltGroup.rotation, 'x', { duration: CONFIG.tilt.duration, ease: 'power3.out' });
+  const setTiltY = gsap.quickTo(tiltGroup.rotation, 'y', { duration: CONFIG.tilt.duration, ease: 'power3.out' });
+  const setCamX = gsap.quickTo(camera.position, 'x', { duration: CONFIG.camera.duration, ease: 'power3.out' });
+  const setCamY = gsap.quickTo(camera.position, 'y', { duration: CONFIG.camera.duration, ease: 'power3.out' });
+
+  window.addEventListener('pointermove', (event) => {
+    pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+    setTiltY(pointer.x * CONFIG.tilt.strength);
+    setTiltX(-pointer.y * CONFIG.tilt.strength);
+
+    setCamX(pointer.x * CONFIG.camera.parallax);
+    setCamY(0.4 + pointer.y * CONFIG.camera.parallax * 0.6);
+  });
+
+  /* ------------------------------------------------------------ */
+  /*  Animation loop                                                */
+  /* ------------------------------------------------------------ */
+  const clock = new THREE.Clock();
+  const groupPhase = Math.random() * Math.PI * 2;
+  let elapsed = 0;
+
+  function animate() {
+    const delta = clock.getDelta();
+    elapsed += delta;
+
+    // Gentle whole-formation bob, same idea as the original single cube
+    floatGroup.position.y = Math.sin(elapsed * CONFIG.assembly.floatSpeed + groupPhase) * CONFIG.assembly.floatAmplitude;
+
+    for (let i = 0; i < COUNT; i++) {
+      const inst = instances[i];
+
+      if (driftActive) {
+        inst.rot.x += delta * inst.driftSpeed.x;
+        inst.rot.y += delta * inst.driftSpeed.y;
+        inst.rot.z += delta * inst.driftSpeed.z;
+      }
+
+      const floatOffset = driftActive
+        ? Math.sin(elapsed * inst.floatSpeed + inst.phase) * inst.floatAmp
+        : 0;
+
+      dummy.position.set(inst.current.x, inst.current.y + floatOffset, inst.current.z);
+      dummy.rotation.set(inst.rot.x, inst.rot.y, inst.rot.z);
+      dummy.updateMatrix();
+      instancedMesh.setMatrixAt(i, dummy.matrix);
+    }
+    instancedMesh.instanceMatrix.needsUpdate = true;
+
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  /* ------------------------------------------------------------ */
+  /*  Resize                                                        */
+  /* ------------------------------------------------------------ */
+  window.addEventListener('resize', () => {
+    const { innerWidth: w, innerHeight: h } = window;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  });
+})();
+</script>
+</body>
+</html>

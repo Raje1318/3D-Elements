@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Automation Network — Industrial Sphere Hero</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:        #08090a;
+    --steel:       #1b1d20;
+    --steel-2:     #2a2d31;
+    --titanium:    #dfe2e6;
+    --titanium-dim:#7c828a;
+    --red:         #d81e27;
+    --yellow:      #f2c200;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html, body{
+    background: var(--void);
+    color: var(--titanium);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    overflow-x:hidden;
+    width:100%;
+  }
+
+  .scroll-runway{ height: 260vh; position: relative; }
+
+  .stage{
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 50% 45%, #0d0f11 0%, #08090a 70%);
+  }
+
+  canvas#core-canvas{
+    position:absolute; inset:0;
+    display:block; width:100%; height:100%;
+  }
+
+  .vignette{
+    position:absolute; inset:0; pointer-events:none;
+    background: radial-gradient(ellipse at 50% 52%, transparent 40%, rgba(8,9,10,0.55) 85%, rgba(8,9,10,0.95) 100%);
+    z-index: 3;
+  }
+
+  .grid-lines{
+    position:absolute; inset:0; pointer-events:none; z-index:2; opacity:0.28;
+    background-image:
+      linear-gradient(rgba(223,226,230,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(223,226,230,0.05) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse at 50% 45%, black 0%, transparent 72%);
+  }
+
+  .hud{
+    position:absolute; inset:0; z-index: 4; pointer-events:none;
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding: clamp(24px, 4vw, 56px);
+  }
+
+  .brand{
+    font-family:'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.18em;
+    color: var(--titanium-dim); display:flex; align-items:center; gap:10px;
+  }
+  .brand::before{
+    content:""; width:7px; height:7px; border-radius:50%;
+    background: var(--red);
+    box-shadow: 0 0 6px 1px rgba(216,30,39,0.7);
+  }
+
+  .top-row{ display:flex; justify-content:space-between; align-items:flex-start; }
+
+  .coords{
+    font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em;
+    color: var(--titanium-dim); text-align:right; line-height:1.7;
+  }
+  .coords span{ color: var(--yellow); }
+
+  .center-copy{
+    align-self:center; text-align:center; max-width: 760px; margin: 0 auto;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.28em;
+    color: var(--red); margin-bottom: 22px; text-transform: uppercase;
+  }
+
+  h1{
+    font-weight: 600; font-size: clamp(2.5rem, 5.6vw, 4.6rem); line-height: 1.04;
+    letter-spacing: -0.02em; color: var(--titanium); text-wrap: balance;
+  }
+  h1 em{ font-style: normal; color: var(--yellow); }
+
+  .subhead{
+    margin: 26px auto 0; max-width: 500px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;
+    letter-spacing: 0.01em; color: var(--titanium-dim);
+  }
+
+  .bottom-row{ display:flex; justify-content:space-between; align-items:flex-end; }
+
+  .controls-hint{
+    font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em;
+    color: var(--titanium-dim); display:flex; gap: 22px;
+  }
+  .controls-hint b{ color: var(--titanium); font-weight:500; }
+
+  .scroll-cue{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    font-family:'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em;
+    color: var(--titanium-dim);
+  }
+  .scroll-cue .line{
+    width:1px; height:34px;
+    background: linear-gradient(var(--yellow), transparent);
+    animation: scrollpulse 1.8s ease-in-out infinite;
+  }
+  @keyframes scrollpulse{
+    0%{ transform: scaleY(0.3); opacity:0.3; transform-origin:top; }
+    50%{ transform: scaleY(1); opacity:1; transform-origin:top; }
+    100%{ transform: scaleY(0.3); opacity:0.3; transform-origin:top; }
+  }
+
+  .loader{
+    position:fixed; inset:0; z-index:20; background: var(--void);
+    display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;
+    transition: opacity 0.8s ease;
+  }
+  .loader-mark{
+    width:44px; height:44px; border-radius:50%;
+    border: 1.5px solid rgba(223,226,230,0.15); border-top-color: var(--red);
+    animation: spin 0.9s linear infinite;
+  }
+  .loader-text{
+    font-family:'JetBrains Mono', monospace; font-size: 11px; letter-spacing:0.2em;
+    color: var(--titanium-dim);
+  }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  @media (max-width: 720px){
+    .controls-hint{ display:none; }
+    .coords{ display:none; }
+  }
+  @media (prefers-reduced-motion: reduce){ .scroll-cue .line{ animation:none; } }
+
+  .after-stage{
+    height: 50vh; display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace; font-size: 12px; letter-spacing:0.2em;
+    color: var(--titanium-dim);
+  }
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="loader-mark"></div>
+  <div class="loader-text">SYNCING NETWORK</div>
+</div>
+
+<div class="scroll-runway" id="runway">
+  <div class="stage">
+    <canvas id="core-canvas"></canvas>
+    <div class="grid-lines"></div>
+    <div class="vignette"></div>
+
+    <div class="hud">
+      <div class="top-row">
+        <div class="coords" id="coords" style="margin-left:auto;">
+          NODES ONLINE <span id="nodeCount">0</span><br/>
+          LAST TRACE <span id="lastNode">—</span>
+        </div>
+      </div>
+
+      <div class="center-copy" id="centerCopy"></div>
+
+      <div class="bottom-row">
+        <div class="controls-hint">
+          <span><b>MOVE</b> — TILT</span>
+          <span><b>CLICK</b> — TRACE ROUTE</span>
+          <span><b>SCROLL</b> — ZOOM IN</span>
+        </div>
+        <div class="scroll-cue">
+          <span>SCROLL</span>
+          <span class="line"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="after-stage">NETWORK RECEDES ON SCROLL BACK</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+gsap.registerPlugin(ScrollTrigger);
+
+/* ------------------------------------------------------------------
+   CONFIG
+------------------------------------------------------------------ */
+const RED = new THREE.Color(0xd81e27);
+const YELLOW = new THREE.Color(0xf2c200);
+const STEEL = new THREE.Color(0x4a4f57);
+const STEEL_DIM = new THREE.Color(0x2e3237);
+const TITANIUM = new THREE.Color(0xc9cdd2);
+
+const SPHERE_RADIUS = 2.4;
+const FABRIC_COUNT = 2600;   // thousands of tiny lattice nodes
+const HUB_COUNT = 64;        // interactive automation hubs
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ------------------------------------------------------------------
+   RENDERER / SCENE / CAMERA
+------------------------------------------------------------------ */
+const canvas = document.getElementById('core-canvas');
+const stage = document.querySelector('.stage');
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x08090a);
+scene.fog = new THREE.FogExp2(0x08090a, 0.038);
+
+const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+camera.position.set(0, 0.25, 8.6);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.06).texture;
+
+/* ------------------------------------------------------------------
+   LIGHTING — restrained, industrial, no wash-out
+------------------------------------------------------------------ */
+const hemi = new THREE.HemisphereLight(0x555c66, 0x08090a, 0.55);
+scene.add(hemi);
+
+const keyLight = new THREE.SpotLight(0xf3f4f6, 90, 26, Math.PI / 6.5, 0.5, 1.4);
+keyLight.position.set(5, 6, 5);
+keyLight.castShadow = false;
+scene.add(keyLight);
+
+const rimLight = new THREE.DirectionalLight(0x8b93a0, 0.7);
+rimLight.position.set(-6, 2, -5);
+scene.add(rimLight);
+
+const warmFill = new THREE.PointLight(0xd81e27, 1.4, 14, 2);
+warmFill.position.set(2, -2, 3);
+scene.add(warmFill);
+
+/* ------------------------------------------------------------------
+   POSTPROCESSING — subtle bloom limited to node glow only
+------------------------------------------------------------------ */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.35, 0.5, 0.78);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
+
+/* ------------------------------------------------------------------
+   HELPERS
+------------------------------------------------------------------ */
+function fibonacciSphere(samples, radius) {
+  const pts = [];
+  const phi = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < samples; i++) {
+    const y = 1 - (i / (samples - 1)) * 2;
+    const r = Math.sqrt(Math.max(0, 1 - y * y));
+    const theta = phi * i;
+    const x = Math.cos(theta) * r;
+    const z = Math.sin(theta) * r;
+    pts.push(new THREE.Vector3(x, y, z).multiplyScalar(radius));
+  }
+  return pts;
+}
+
+function circleSprite() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 32;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+  g.addColorStop(0, 'rgba(255,255,255,1)');
+  g.addColorStop(0.5, 'rgba(255,255,255,0.6)');
+  g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 32, 32);
+  return new THREE.CanvasTexture(c);
+}
+
+/* ------------------------------------------------------------------
+   NETWORK GROUP (whole object — tilt / rotation applied here)
+------------------------------------------------------------------ */
+const networkGroup = new THREE.Group();
+scene.add(networkGroup);
+
+/* --- Fabric: thousands of tiny lattice points forming the sphere skin --- */
+const fabricPositions = fibonacciSphere(FABRIC_COUNT, SPHERE_RADIUS);
+const fabricGeo = new THREE.BufferGeometry();
+const posArr = new Float32Array(FABRIC_COUNT * 3);
+const colArr = new Float32Array(FABRIC_COUNT * 3);
+fabricPositions.forEach((p, i) => {
+  const jitter = 1 + (Math.random() - 0.5) * 0.01;
+  posArr[i * 3] = p.x * jitter;
+  posArr[i * 3 + 1] = p.y * jitter;
+  posArr[i * 3 + 2] = p.z * jitter;
+  const c = STEEL_DIM.clone().lerp(TITANIUM, Math.random() * 0.35);
+  if (Math.random() < 0.03) c.lerp(Math.random() < 0.5 ? RED : YELLOW, 0.5);
+  colArr[i * 3] = c.r; colArr[i * 3 + 1] = c.g; colArr[i * 3 + 2] = c.b;
+});
+fabricGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+fabricGeo.setAttribute('color', new THREE.BufferAttribute(colArr, 3));
+
+const fabricMat = new THREE.PointsMaterial({
+  size: 0.026, sizeAttenuation: true, vertexColors: true,
+  map: circleSprite(), transparent: true, alphaTest: 0.25,
+  depthWrite: false, opacity: 0.85,
+});
+const fabric = new THREE.Points(fabricGeo, fabricMat);
+networkGroup.add(fabric);
+
+/* --- Hubs: interactive automation nodes (factories / robot cells) --- */
+const hubPositions = fibonacciSphere(HUB_COUNT, SPHERE_RADIUS * 1.012);
+const hubsGroup = new THREE.Group();
+networkGroup.add(hubsGroup);
+
+const hubMeshes = [];
+const hubGeo = new THREE.SphereGeometry(0.05, 14, 14);
+
+hubPositions.forEach((pos, i) => {
+  const roll = Math.random();
+  let accent, isActive;
+  if (roll < 0.22) { accent = RED; isActive = true; }
+  else if (roll < 0.42) { accent = YELLOW; isActive = true; }
+  else { accent = STEEL; isActive = false; }
+
+  const mat = new THREE.MeshStandardMaterial({
+    color: isActive ? accent.clone().multiplyScalar(0.5) : new THREE.Color(0x1c1e21),
+    emissive: accent,
+    emissiveIntensity: isActive ? 0.9 : 0.28,
+    roughness: 0.4, metalness: 0.6, envMapIntensity: 1.0,
+  });
+  const mesh = new THREE.Mesh(hubGeo, mat);
+  mesh.position.copy(pos);
+  mesh.userData = {
+    index: i, baseIntensity: isActive ? 0.9 : 0.28, isActive,
+    phase: Math.random() * Math.PI * 2, baseScale: isActive ? 1.15 : 0.85,
+    hover: 0,
+  };
+  hubsGroup.add(mesh);
+  hubMeshes.push(mesh);
+});
+
+/* --- Edges: curved routes wrapping the sphere between nearby hubs --- */
+function buildArc(a, b, radius, bulge) {
+  const mid = a.clone().add(b).multiplyScalar(0.5).normalize().multiplyScalar(radius * (1 + bulge));
+  return new THREE.QuadraticBezierCurve3(a.clone(), mid, b.clone());
+}
+
+const edgesGroup = new THREE.Group();
+networkGroup.add(edgesGroup);
+
+const adjacency = new Map(); // index -> [{ curve, to }]
+const seenPairs = new Set();
+const K_NEAREST = 3;
+
+hubMeshes.forEach((hub) => {
+  const dists = hubMeshes
+    .map((other) => ({ other, d: hub.position.distanceTo(other.position) }))
+    .filter((o) => o.other !== hub)
+    .sort((a, b) => a.d - b.d)
+    .slice(0, K_NEAREST);
+
+  dists.forEach(({ other }) => {
+    const key = [hub.userData.index, other.userData.index].sort((a, b) => a - b).join('-');
+    if (seenPairs.has(key)) return;
+    seenPairs.add(key);
+
+    const bulge = 0.05 + Math.random() * 0.05;
+    const curve = buildArc(hub.position, other.position, SPHERE_RADIUS, bulge);
+    const dist = hub.position.distanceTo(other.position);
+    const segs = Math.max(8, Math.round(dist * 14));
+    const tubeGeo = new THREE.TubeGeometry(curve, segs, 0.0035, 5, false);
+
+    const isAccent = hub.userData.isActive && other.userData.isActive && Math.random() < 0.6;
+    const lineColor = isAccent ? (Math.random() < 0.5 ? RED : YELLOW) : STEEL;
+    const mat = new THREE.MeshBasicMaterial({
+      color: lineColor, transparent: true,
+      opacity: isAccent ? 0.55 : 0.22,
+    });
+    const tube = new THREE.Mesh(tubeGeo, mat);
+    edgesGroup.add(tube);
+
+    const edgeAB = { curve, to: other.userData.index, from: hub.userData.index };
+    const edgeBA = { curve: new THREE.QuadraticBezierCurve3(curve.v2.clone(), curve.v1.clone(), curve.v0.clone()), to: hub.userData.index, from: other.userData.index };
+
+    if (!adjacency.has(hub.userData.index)) adjacency.set(hub.userData.index, []);
+    if (!adjacency.has(other.userData.index)) adjacency.set(other.userData.index, []);
+    adjacency.get(hub.userData.index).push(edgeAB);
+    adjacency.get(other.userData.index).push(edgeBA);
+  });
+});
+
+/* --- Pulse pool: small traveling glow markers for click interactions --- */
+const PULSE_POOL_SIZE = 20;
+const pulsePool = [];
+const pulseGeo = new THREE.SphereGeometry(0.028, 8, 8);
+for (let i = 0; i < PULSE_POOL_SIZE; i++) {
+  const mat = new THREE.MeshBasicMaterial({ color: YELLOW, transparent: true, opacity: 0 });
+  const dot = new THREE.Mesh(pulseGeo, mat);
+  dot.visible = false;
+  edgesGroup.add(dot);
+  pulsePool.push(dot);
+}
+function acquirePulse() { return pulsePool.find((d) => !d.visible) || null; }
+
+function firePulse(nodeIndex, depth, delay) {
+  if (depth > 2) return;
+  const edges = adjacency.get(nodeIndex) || [];
+  edges.forEach((edge, ei) => {
+    const dot = acquirePulse();
+    if (!dot) return;
+    dot.visible = true;
+    dot.material.color.copy(depth === 0 ? YELLOW : RED);
+    const state = { t: 0 };
+    gsap.to(state, {
+      t: 1, duration: 0.85, delay: delay + ei * 0.04, ease: 'power1.inOut',
+      onStart() { dot.material.opacity = 0.95; },
+      onUpdate() {
+        dot.position.copy(edge.curve.getPoint(state.t));
+        dot.material.opacity = Math.sin(state.t * Math.PI) * 0.95;
+      },
+      onComplete() {
+        dot.visible = false;
+        firePulse(edge.to, depth + 1, 0.04);
+      },
+    });
+  });
+}
+
+/* ------------------------------------------------------------------
+   STATE
+------------------------------------------------------------------ */
+const pointer = { x: 0, y: 0 };
+const tiltTarget = new THREE.Euler();
+const tiltCurrent = new THREE.Euler();
+
+let hoveredIndex = -1;
+let scrollProgress = 0;
+
+const clock = new THREE.Clock();
+const raycaster = new THREE.Raycaster();
+raycaster.params.Points.threshold = 0.05;
+const pointerNDC = new THREE.Vector2();
+
+/* ------------------------------------------------------------------
+   INTERACTIONS
+------------------------------------------------------------------ */
+function onPointerMove(e) {
+  const rect = stage.getBoundingClientRect();
+  pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+
+  tiltTarget.y = pointer.x * 0.28;
+  tiltTarget.x = -pointer.y * 0.18;
+
+  pointerNDC.set(pointer.x, -pointer.y);
+  updateHover();
+}
+window.addEventListener('pointermove', onPointerMove, { passive: true });
+
+function updateHover() {
+  raycaster.setFromCamera(pointerNDC, camera);
+  const hits = raycaster.intersectObjects(hubMeshes, false);
+  const newIndex = hits.length ? hits[0].object.userData.index : -1;
+  if (newIndex !== hoveredIndex) {
+    hoveredIndex = newIndex;
+    document.body.style.cursor = hoveredIndex >= 0 ? 'pointer' : 'default';
+  }
+}
+
+canvas.addEventListener('click', () => {
+  if (hoveredIndex < 0) return;
+  firePulse(hoveredIndex, 0, 0);
+  document.getElementById('lastNode').textContent = 'HUB-' + String(hoveredIndex).padStart(3, '0');
+});
+
+/* ------------------------------------------------------------------
+   SCROLL — camera moves in toward the network, sphere keeps spinning
+------------------------------------------------------------------ */
+ScrollTrigger.create({
+  trigger: '#runway',
+  start: 'top top',
+  end: 'bottom bottom',
+  scrub: 1,
+  onUpdate: (self) => { scrollProgress = self.progress; },
+});
+
+gsap.to('#centerCopy', {
+  opacity: 0, y: -30,
+  scrollTrigger: { trigger: '#runway', start: 'top top', end: '20% top', scrub: 1 },
+});
+
+/* ------------------------------------------------------------------
+   RESIZE
+------------------------------------------------------------------ */
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ------------------------------------------------------------------
+   ANIMATION LOOP
+------------------------------------------------------------------ */
+function animate() {
+  const dt = Math.min(clock.getDelta(), 1 / 30);
+  const t = clock.elapsedTime;
+
+  const idleSpeed = REDUCED_MOTION ? 0 : 0.045;
+  networkGroup.rotation.y += (idleSpeed + scrollProgress * 0.05) * dt * 6;
+
+  tiltCurrent.x += (tiltTarget.x - tiltCurrent.x) * (1 - Math.pow(0.001, dt));
+  tiltCurrent.y += (tiltTarget.y - tiltCurrent.y) * (1 - Math.pow(0.001, dt));
+  networkGroup.rotation.x = tiltCurrent.x;
+  networkGroup.rotation.z = tiltCurrent.y * 0.35;
+
+  hubMeshes.forEach((hub) => {
+    const isHovered = hub.userData.index === hoveredIndex;
+    hub.userData.hover += ((isHovered ? 1 : 0) - hub.userData.hover) * Math.min(1, dt * 8);
+    const pulse = Math.sin(t * 0.6 + hub.userData.phase) * 0.12;
+    hub.material.emissiveIntensity = hub.userData.baseIntensity + pulse + hub.userData.hover * 1.1;
+    const scale = hub.userData.baseScale * (1 + hub.userData.hover * 0.55 + Math.max(0, pulse) * 0.3);
+    hub.scale.setScalar(scale);
+  });
+
+  const camZ = THREE.MathUtils.lerp(8.6, 5.6, scrollProgress);
+  const camY = THREE.MathUtils.lerp(0.25, 0.05, scrollProgress);
+  camera.position.z += (camZ - camera.position.z) * 0.08;
+  camera.position.y += (camY - camera.position.y) * 0.08;
+  camera.lookAt(0, 0, 0);
+
+  composer.render();
+  requestAnimationFrame(animate);
+}
+
+document.getElementById('nodeCount').textContent = (FABRIC_COUNT + HUB_COUNT).toLocaleString();
+
+/* ------------------------------------------------------------------
+   BOOT
+------------------------------------------------------------------ */
+requestAnimationFrame(() => {
+  animate();
+  gsap.to('#loader', {
+    opacity: 0, duration: 0.7, delay: 0.3,
+    onComplete: () => document.getElementById('loader').remove(),
+  });
+});
+</script>
+</body>
+</html>

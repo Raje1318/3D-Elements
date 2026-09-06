@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Helios — Power Has a Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,380;0,9..144,460;0,9..144,560;1,9..144,460;1,9..144,560&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1E2A32;
+    --ink-soft: #55666F;
+    --accent: #E29A1C;
+    --accent-deep: #F6B93B;
+    --warm: #E08A3C;
+    --warm-glow: #FFD98A;
+    --line: rgba(30, 42, 50, 0.10);
+    --paper: #F7F5EE;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: linear-gradient(180deg, #EAF3F7 0%, #F3F1EA 58%, #F7F5EE 100%);
+    font-family: 'Inter', -apple-system, "Segoe UI", sans-serif;
+    color: var(--ink);
+  }
+
+  #page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 560px;
+  }
+
+  /* ---------------- Navbar ---------------- */
+  #navbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 clamp(20px, 3.6vw, 56px);
+    height: clamp(64px, 8vh, 84px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Fraunces', serif;
+    font-weight: 560;
+    font-size: 20px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .brand-mark {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 32% 28%, #FFE9C2 0%, var(--warm) 55%, var(--accent-deep) 130%);
+    box-shadow: 0 0 0 1px rgba(30,42,50,0.06);
+    flex: none;
+  }
+  #nav-links {
+    display: flex;
+    align-items: center;
+    gap: clamp(18px, 2.6vw, 34px);
+  }
+  #nav-links a {
+    font-size: 14px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+    transition: color 0.2s ease;
+  }
+  #nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    padding: 9px 18px;
+    border-radius: 999px;
+    background: var(--ink);
+    color: #F7F5EE !important;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .nav-cta:hover { background: #0F171C; }
+  #nav-toggle { display: none; }
+
+  /* ---------------- Hero ---------------- */
+  #hero {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  #text-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 22px;
+    padding: clamp(20px, 4vh, 48px) clamp(24px, 4vw, 64px);
+    min-width: 0;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-deep);
+  }
+  .eyebrow::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--warm);
+    box-shadow: 0 0 0 3px rgba(224, 138, 60, 0.16);
+  }
+
+  h1 {
+    margin: 0;
+    font-family: 'Fraunces', serif;
+    font-weight: 460;
+    font-size: clamp(38px, 4.6vw, 68px);
+    line-height: 1.03;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-weight: 560;
+    color: var(--accent-deep);
+  }
+
+  .supporting {
+    margin: 0;
+    max-width: 34ch;
+    font-size: clamp(15px, 1.15vw, 18px);
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+
+  .cta-row { display: flex; align-items: center; gap: 18px; margin-top: 4px; }
+
+  #explore-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: 0 10px 24px -12px rgba(47, 168, 138, 0.55);
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  #explore-cta:hover {
+    background: var(--accent-deep);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px -12px rgba(47, 168, 138, 0.6);
+  }
+  #explore-cta:active { transform: translateY(0); }
+  #explore-cta svg { transition: transform 0.2s ease; }
+  #explore-cta:hover svg { transform: translate(2px, -2px); }
+
+  .flow-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    margin-top: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    opacity: 0.78;
+  }
+  .flow-legend span.sep { color: var(--warm); opacity: 0.9; }
+
+  /* ---------------- Scene panel ---------------- */
+  #scene-panel {
+    position: relative;
+    min-width: 0;
+    height: 100%;
+  }
+  #scene-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+  }
+  #scene-canvas:active { cursor: grabbing; }
+
+  .hero-label {
+    position: absolute;
+    left: 50%;
+    bottom: 4.5%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: #33414C;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ---------------- Responsive ---------------- */
+  @media (max-width: 880px) {
+    html, body { overflow: auto; }
+    #page { height: auto; min-height: 100vh; }
+    #hero { grid-template-columns: 1fr; }
+    #scene-panel { height: 62vh; min-height: 380px; }
+    #nav-links a:not(.nav-cta) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="page">
+
+  <section id="hero">
+    <div id="scene-panel">
+      <canvas id="scene-canvas"></canvas>
+      <div class="hero-label">Drag to explore &middot; Scroll to zoom</div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+
+(function () {
+  const canvas = document.getElementById('scene-canvas');
+  const hero = document.getElementById('scene-panel');
+
+  // ---------- Palette ----------
+  const COLORS = {
+    ground: 0xBFDDA0,
+    groundEdge: 0xACCB8B,
+    wall: 0xF7F3EA,
+    wallTrim: 0xD9CFB8,
+    roof: 0x3B4550,
+    roofDark: 0x2A323B,
+    door: 0x2E3944,
+    windowGlass: 0xBBD9E3,
+    windowFrame: 0x2E3944,
+    panelBody: 0x11202F,
+    panelCell: 0x3E6690,
+    panelFrame: 0xD7DBDF,
+    accent: 0x2FA88A,
+    accentLight: 0x8ED9C4,
+    inverterBody: 0xF2F0EA,
+    inverterTrim: 0xB8B3A4,
+    batteryBody: 0x2C333C,
+    batteryCap: 0xF2F0EA,
+    poleMetal: 0x7B838A,
+    poleDark: 0x565D63,
+    wire: 0x9AA0A6,
+    sunCore: 0xFFE7B0,
+    sunGlow: 0xFFD98A,
+    sunOrange: 0xFFA64D,
+    grassPatchA: 0xAED187,
+    grassPatchB: 0xC8E2A6,
+    treeTrunk: 0x9B7B54,
+    treeLeafA: 0x84B26E,
+    treeLeafB: 0x6F9C5C,
+    bush: 0x8FB673,
+    rock: 0xC9C3B4
+  };
+
+  // ---------- Renderer / Scene / Camera ----------
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+
+  const scene = new THREE.Scene();
+  scene.background = null;
+
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+
+  function frameCamera() {
+    camera.position.set(9.5, 6.4, 11);
+    camera.lookAt(0.4, 1.1, 0);
+  }
+  frameCamera();
+
+  // ---------- Lights ----------
+  const hemi = new THREE.HemisphereLight(0xF6FAFC, 0xD9E6C4, 0.78);
+  scene.add(hemi);
+
+  const key = new THREE.DirectionalLight(0xFFF3DC, 1.4);
+  key.position.set(8, 11, 6);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.left = -10;
+  key.shadow.camera.right = 10;
+  key.shadow.camera.top = 10;
+  key.shadow.camera.bottom = -10;
+  key.shadow.camera.near = 1;
+  key.shadow.camera.far = 30;
+  key.shadow.bias = -0.0015;
+  key.shadow.radius = 3;
+  scene.add(key);
+
+  const fill = new THREE.DirectionalLight(0xCFE3F0, 0.35);
+  fill.position.set(-6, 5, -4);
+  scene.add(fill);
+
+  const rim = new THREE.DirectionalLight(0x2FA88A, 0.18);
+  rim.position.set(-3, 4, 6);
+  scene.add(rim);
+
+  // ---------- Root group (for centering) ----------
+  const world = new THREE.Group();
+  scene.add(world);
+
+  // ---------- Ground ----------
+  const groundGeo = new THREE.CylinderGeometry(7.4, 7.4, 0.25, 64);
+  const groundMat = new THREE.MeshStandardMaterial({ color: COLORS.ground, roughness: 0.95, metalness: 0 });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.position.y = -0.125;
+  ground.receiveShadow = true;
+  world.add(ground);
+
+  const ringGeo = new THREE.TorusGeometry(7.4, 0.03, 8, 64);
+  const ringMat = new THREE.MeshStandardMaterial({ color: COLORS.groundEdge, roughness: 0.9 });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.0;
+  world.add(ring);
+
+  // helper
+  function box(w, h, d, color, opts = {}) {
+    const geo = new THREE.BoxGeometry(w, h, d);
+    const mat = new THREE.MeshStandardMaterial({
+      color,
+      roughness: opts.roughness !== undefined ? opts.roughness : 0.6,
+      metalness: opts.metalness !== undefined ? opts.metalness : 0.05,
+      emissive: opts.emissive || 0x000000,
+      emissiveIntensity: opts.emissiveIntensity || 0
+    });
+    const m = new THREE.Mesh(geo, mat);
+    m.castShadow = true;
+    m.receiveShadow = true;
+    return m;
+  }
+
+  // =====================================================
+  // HOUSE
+  // =====================================================
+  const house = new THREE.Group();
+  house.position.set(-1.6, 0, 0);
+  world.add(house);
+
+  // plinth
+  const plinth = box(3.4, 0.18, 3.0, COLORS.wallTrim, { roughness: 0.85 });
+  plinth.position.y = 0.09;
+  house.add(plinth);
+
+  // main body
+  const body = box(3.2, 2.0, 2.8, COLORS.wall, { roughness: 0.8 });
+  body.position.y = 0.18 + 1.0;
+  house.add(body);
+
+  // corner trim strips (subtle)
+  [-1.58, 1.58].forEach((x) => {
+    const trim = box(0.06, 2.0, 2.82, COLORS.wallTrim, { roughness: 0.8 });
+    trim.position.set(x, 1.18, 0);
+    house.add(trim);
+  });
+
+  // door
+  const door = box(0.62, 1.3, 0.06, COLORS.door, { roughness: 0.55, metalness: 0.1 });
+  door.position.set(-0.95, 0.18 + 0.65, 1.43);
+  house.add(door);
+  const doorHandle = box(0.04, 0.04, 0.05, 0xC9CDD2, { metalness: 0.6, roughness: 0.3 });
+  doorHandle.position.set(-0.72, 0.18 + 0.65, 1.46);
+  house.add(doorHandle);
+
+  // windows (front)
+  const houseGlassMeshes = [];
+  function makeWindow(x, y, z, w = 0.7, h = 0.7) {
+    const grp = new THREE.Group();
+    const frame = box(w + 0.08, h + 0.08, 0.07, COLORS.windowFrame, { roughness: 0.5 });
+    const glass = box(w, h, 0.05, COLORS.windowGlass, { roughness: 0.15, metalness: 0.3 });
+    glass.position.z = 0.02;
+    grp.add(frame, glass);
+    grp.position.set(x, y, z);
+    house.add(grp);
+    houseGlassMeshes.push(glass);
+    return grp;
+  }
+  makeWindow(0.55, 0.18 + 1.25, 1.43, 0.85, 0.75);
+  makeWindow(1.4, 0.18 + 0.55, 1.43, 0.5, 0.55);
+
+  // side window
+  const sideWin = makeWindow(0, 0, 0, 0.7, 0.7);
+  sideWin.rotation.y = Math.PI / 2;
+  sideWin.position.set(1.63, 0.18 + 1.15, -0.3);
+
+  // =====================================================
+  // HOUSE POWER INDICATORS — porch light + a couple of simple
+  // "appliance" indicator dots, plus a "POWERING HOME" label.
+  // All start off; updateHousePower() activates them later.
+  // =====================================================
+  const housePowerLights = [];
+  function makePowerDot(x, y, z, radius) {
+    const mat = new THREE.MeshStandardMaterial({
+      color: COLORS.accentLight,
+      emissive: COLORS.accent,
+      emissiveIntensity: 0,
+      roughness: 0.3
+    });
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(radius, 12, 12), mat);
+    dot.position.set(x, y, z);
+    house.add(dot);
+    housePowerLights.push(mat);
+    return dot;
+  }
+  makePowerDot(-0.72, 0.18 + 1.05, 1.47, 0.035); // porch light above the door
+  makePowerDot(1.4, 0.18 + 0.3, 1.47, 0.028);    // small appliance indicator near lower window
+
+  function makeHouseLabel(text) {
+    const w = 256, h = 64;
+    const cnv = document.createElement('canvas');
+    cnv.width = w; cnv.height = h;
+    const ctx = cnv.getContext('2d');
+    ctx.font = '600 30px -apple-system, "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#2FA88A';
+    ctx.fillText(text, w / 2, h / 2 + 1);
+    const tex = new THREE.CanvasTexture(cnv);
+    tex.needsUpdate = true;
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(1.0, 0.25, 1);
+    return sprite;
+  }
+  const poweringLabel = makeHouseLabel('POWERING HOME');
+  poweringLabel.position.set(0.3, 3.0, 0.4);
+  house.add(poweringLabel);
+
+  // =====================================================
+  // ROOF (single mono-pitch / shed roof, angled toward sun)
+  // =====================================================
+  const roofGroup = new THREE.Group();
+  roofGroup.position.set(0, 0.18 + 2.0, 0);
+  house.add(roofGroup);
+
+  const roofPitch = THREE.MathUtils.degToRad(14);
+  const roofSlab = box(3.55, 0.16, 3.35, COLORS.roof, { roughness: 0.55, metalness: 0.1 });
+  roofSlab.rotation.x = roofPitch;
+  roofSlab.position.set(0, 0.42, -0.1);
+  roofGroup.add(roofSlab);
+
+  // fascia strip along low edge
+  const fascia = box(3.55, 0.14, 0.1, COLORS.roofDark, { roughness: 0.5 });
+  fascia.position.set(0, 0.16, 1.62);
+  roofGroup.add(fascia);
+
+  // =====================================================
+  // SOLAR PANELS on roof
+  // Mounted on a group that inherits the roof slab's exact position + tilt,
+  // so panel placement is defined in the roof's own flat local frame —
+  // this guarantees panels sit cleanly ON TOP of the roof surface with a
+  // visible standoff gap, instead of being buried inside the slab.
+  // =====================================================
+  const panelsGroup = new THREE.Group();
+  panelsGroup.position.copy(roofSlab.position);
+  panelsGroup.rotation.x = roofPitch;
+  roofGroup.add(panelsGroup);
+
+  const panelBodies = []; // collected for the activation pulse animation
+
+  function makeSolarPanel(w, h) {
+    const grp = new THREE.Group();
+    const frame = box(w, 0.045, h, COLORS.panelFrame, { roughness: 0.35, metalness: 0.6 });
+    const panel = box(w - 0.05, 0.02, h - 0.05, COLORS.panelBody, { roughness: 0.18, metalness: 0.5 });
+    panel.position.y = 0.024;
+    grp.add(frame, panel);
+    panelBodies.push(panel);
+
+    // cell grid lines with clear contrast so the panel reads as photovoltaic cells
+    const cols = 3, rows = 2;
+    const cw = (w - 0.08) / cols;
+    const ch = (h - 0.08) / rows;
+    for (let i = 1; i < cols; i++) {
+      const line = box(0.014, 0.03, h - 0.08, COLORS.panelCell, { roughness: 0.3, metalness: 0.5 });
+      line.position.set(-w / 2 + 0.04 + i * cw, 0.034, 0);
+      grp.add(line);
+    }
+    for (let j = 1; j < rows; j++) {
+      const line = box(w - 0.08, 0.03, 0.014, COLORS.panelCell, { roughness: 0.3, metalness: 0.5 });
+      line.position.set(0, 0.034, -h / 2 + 0.04 + j * ch);
+      grp.add(line);
+    }
+    return grp;
+  }
+
+  const panelW = 1.05, panelH = 1.5;
+  const gap = 0.08;
+  // Local, unrotated frame of the roof slab: slab half-height 0.08, so a
+  // small standoff of 0.06 puts the panel bank clearly above the surface.
+  const panelMountY = 0.08 + 0.06;
+  const panelMountZ = -0.35; // within the slab's local depth range
+  for (let c = 0; c < 3; c++) {
+    const p = makeSolarPanel(panelW, panelH);
+    const x = (c - 1) * (panelW + gap);
+    p.position.set(x, panelMountY, panelMountZ);
+    panelsGroup.add(p);
+  }
+
+  // =====================================================
+  // INVERTER — mounted on house wall, between panels & battery
+  // =====================================================
+  const inverter = new THREE.Group();
+  inverter.position.set(1.72, 0.18 + 1.15, 0.55);
+  house.add(inverter);
+
+  const invCase = box(0.36, 0.5, 0.16, COLORS.inverterBody, { roughness: 0.5 });
+  const invTrim = box(0.36, 0.06, 0.02, COLORS.inverterTrim, { roughness: 0.4 });
+  invTrim.position.set(0, 0.16, 0.08);
+  const invScreen = new THREE.Mesh(
+    new THREE.BoxGeometry(0.16, 0.1, 0.02),
+    new THREE.MeshStandardMaterial({ color: COLORS.accent, emissive: COLORS.accent, emissiveIntensity: 0.9, roughness: 0.3 })
+  );
+  invScreen.position.set(0, -0.02, 0.09);
+  invCase.rotation.y = Math.PI / 2;
+  invTrim.rotation.y = Math.PI / 2;
+  invScreen.rotation.y = Math.PI / 2;
+  invCase.position.x = 0;
+  inverter.add(invCase, invTrim, invScreen);
+
+  // =====================================================
+  // BATTERY STORAGE UNIT — beside the house
+  // =====================================================
+  const battery = new THREE.Group();
+  battery.position.set(2.55, 0, 0.9);
+  world.add(battery);
+
+  const battPlinth = box(0.85, 0.1, 0.55, COLORS.wallTrim, { roughness: 0.85 });
+  battPlinth.position.y = 0.05;
+  battery.add(battPlinth);
+
+  const battBody = box(0.68, 1.15, 0.38, COLORS.batteryBody, { roughness: 0.45, metalness: 0.25 });
+  battBody.position.y = 0.1 + 0.575;
+  battery.add(battBody);
+
+  const battCap = box(0.72, 0.08, 0.42, COLORS.batteryCap, { roughness: 0.4 });
+  battCap.position.y = 0.1 + 1.15 + 0.04;
+  battery.add(battCap);
+
+  // glowing accent stripe + status dots
+  const stripe = new THREE.Mesh(
+    new THREE.BoxGeometry(0.685, 0.05, 0.02),
+    new THREE.MeshStandardMaterial({ color: COLORS.accent, emissive: COLORS.accent, emissiveIntensity: 0.85, roughness: 0.3 })
+  );
+  stripe.position.set(0, 0.1 + 0.78, 0.2);
+  battery.add(stripe);
+
+  for (let i = 0; i < 3; i++) {
+    const dot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, 0.015, 12),
+      new THREE.MeshStandardMaterial({ color: COLORS.accentLight, emissive: COLORS.accent, emissiveIntensity: 0.6 })
+    );
+    dot.rotation.x = Math.PI / 2;
+    dot.position.set(-0.2 + i * 0.2, 0.1 + 0.95, 0.2);
+    battery.add(dot);
+  }
+
+  // =====================================================
+  // BATTERY CHARGE INDICATOR — internal energy-level gauge + "CHARGING" label
+  // Purely additive: sits on the existing battery front face, animated later
+  // in updateBatteryCharge(). Rest of the battery unit is untouched.
+  // =====================================================
+  const battFillMaxHeight = 0.86;
+  const battFillBottomY = 0.1 + 0.1; // just above the plinth, inside the body's front face
+  const battFillMat = new THREE.MeshStandardMaterial({
+    color: COLORS.accentLight,
+    emissive: COLORS.accent,
+    emissiveIntensity: 0.4,
+    roughness: 0.3
+  });
+  const battFill = new THREE.Mesh(
+    new THREE.BoxGeometry(0.46, battFillMaxHeight, 0.02),
+    battFillMat
+  );
+  battFill.position.set(0, battFillBottomY, 0.2);
+  battFill.scale.y = 0.001;
+  battery.add(battFill);
+
+  function makeChargingLabel(text) {
+    const w = 256, h = 64;
+    const cnv = document.createElement('canvas');
+    cnv.width = w; cnv.height = h;
+    const ctx = cnv.getContext('2d');
+    ctx.font = '600 30px -apple-system, "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#2FA88A';
+    ctx.fillText(text, w / 2, h / 2 + 1);
+    const tex = new THREE.CanvasTexture(cnv);
+    tex.needsUpdate = true;
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, opacity: 0, depthWrite: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(0.85, 0.213, 1);
+    return sprite;
+  }
+  const chargingLabel = makeChargingLabel('CHARGING');
+  chargingLabel.position.set(0, 0.1 + 1.15 + 0.04 + 0.26, 0.1);
+  battery.add(chargingLabel);
+
+  // =====================================================
+  // ELECTRICAL GRID CONNECTION — pole with transformer + wires
+  // =====================================================
+  const gridPole = new THREE.Group();
+  gridPole.position.set(5.4, 0, -0.3);
+  world.add(gridPole);
+
+  const poleMat = new THREE.MeshStandardMaterial({ color: COLORS.poleMetal, roughness: 0.5, metalness: 0.5 });
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 2.6, 16), poleMat);
+  pole.position.y = 1.3;
+  pole.castShadow = true;
+  gridPole.add(pole);
+
+  const crossbar = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.06, 0.06), poleMat);
+  crossbar.position.y = 2.35;
+  crossbar.castShadow = true;
+  gridPole.add(crossbar);
+
+  const transformerMat = new THREE.MeshStandardMaterial({ color: COLORS.poleDark, roughness: 0.4, metalness: 0.4 });
+  const transformer = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.4, 16), transformerMat);
+  transformer.rotation.z = Math.PI / 2;
+  transformer.position.set(0.15, 1.9, 0);
+  transformer.castShadow = true;
+  gridPole.add(transformer);
+
+  // insulators
+  [-0.35, 0.35].forEach((x) => {
+    const ins = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.03, 0.05, 0.12, 10),
+      new THREE.MeshStandardMaterial({ color: 0xD9D3C4, roughness: 0.4 })
+    );
+    ins.position.set(x, 2.29, 0);
+    gridPole.add(ins);
+  });
+
+  // ---------- Wires (grid, neutral) using tubes ----------
+  function makeWire(points, color, radius, emissive) {
+    const curve = new THREE.CatmullRomCurve3(points);
+    const geo = new THREE.TubeGeometry(curve, 48, radius, 16, false);
+    const mat = new THREE.MeshStandardMaterial({
+      color,
+      roughness: 0.5,
+      metalness: 0.2,
+      emissive: emissive || 0x000000,
+      emissiveIntensity: emissive ? 0.6 : 0
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = false;
+    world.add(mesh);
+    return mesh;
+  }
+
+  // grid wire: pole -> house roof edge (neutral gray, standard utility line)
+  const poleTop = new THREE.Vector3(5.4, 2.35, -0.3);
+  const houseEave = new THREE.Vector3(1.6, 2.55, 0.55);
+  makeWire(
+    [poleTop, new THREE.Vector3(3.6, 2.05, 0.1), houseEave],
+    COLORS.wire, 0.025
+  );
+
+  // energy flow line: panels -> inverter (accent teal, signature)
+  // panelNode is computed from the panel mount transform itself, so it always
+  // sits exactly on the visible panel bank regardless of roof pitch/position.
+  const panelNode = new THREE.Vector3(0, panelMountY + 0.05, panelMountZ)
+    .applyAxisAngle(new THREE.Vector3(1, 0, 0), roofPitch)
+    .add(roofSlab.position)
+    .add(roofGroup.position)
+    .add(house.position);
+  const invIn = new THREE.Vector3(inverter.position.x + house.position.x, inverter.position.y, inverter.position.z + house.position.z);
+  makeWire(
+    [
+      panelNode,
+      new THREE.Vector3(-0.75, 2.15, 0.05),
+      invIn
+    ],
+    COLORS.accent, 0.02, COLORS.accent
+  );
+
+  // energy flow line: inverter -> battery (accent teal)
+  makeWire(
+    [
+      invIn,
+      new THREE.Vector3(2.1, 1.35, 0.75),
+      new THREE.Vector3(battery.position.x, 0.1 + 0.78, battery.position.z)
+    ],
+    COLORS.accent, 0.02, COLORS.accent
+  );
+
+  // grid tie: battery/inverter area -> grid pole base (neutral)
+  makeWire(
+    [
+      new THREE.Vector3(3.0, 0.35, 1.0),
+      new THREE.Vector3(4.2, 0.3, 0.4),
+      new THREE.Vector3(5.4, 0.2, -0.1)
+    ],
+    COLORS.wire, 0.022
+  );
+
+  // =====================================================
+  // Small landscaping accents (kept minimal)
+  // =====================================================
+  function makeBush(x, z, scale = 1) {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: 0x9CAE7C, roughness: 0.9 });
+    const c1 = new THREE.Mesh(new THREE.SphereGeometry(0.28 * scale, 12, 10), mat);
+    const c2 = new THREE.Mesh(new THREE.SphereGeometry(0.2 * scale, 12, 10), mat);
+    c2.position.set(0.22 * scale, -0.05 * scale, 0.05 * scale);
+    c1.castShadow = true; c2.castShadow = true;
+    c1.receiveShadow = true; c2.receiveShadow = true;
+    g.add(c1, c2);
+    g.position.set(x, 0.22 * scale, z);
+    world.add(g);
+  }
+  makeBush(-3.1, 1.55, 1.0);
+  makeBush(-0.2, 1.75, 0.8);
+  makeBush(4.3, 1.1, 0.9);
+  makeBush(2.9, 1.85, 0.7);
+  makeBush(-4.5, -1.0, 0.85);
+  makeBush(6.3, -1.0, 0.75);
+
+  // ---------- Simple stylized trees (background) ----------
+  function makeTree(x, z, scale = 1) {
+    const g = new THREE.Group();
+
+    const trunkMat = new THREE.MeshStandardMaterial({ color: COLORS.treeTrunk, roughness: 0.85 });
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.055 * scale, 0.08 * scale, 0.95 * scale, 8), trunkMat);
+    trunk.position.y = 0.475 * scale;
+    trunk.castShadow = true;
+    trunk.receiveShadow = true;
+    g.add(trunk);
+
+    const leafMatA = new THREE.MeshStandardMaterial({ color: COLORS.treeLeafA, roughness: 0.8, flatShading: true });
+    const leafMatB = new THREE.MeshStandardMaterial({ color: COLORS.treeLeafB, roughness: 0.8, flatShading: true });
+
+    const crown1 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.52 * scale, 0), leafMatA);
+    crown1.position.set(0, 1.15 * scale, 0);
+    crown1.castShadow = true;
+    crown1.receiveShadow = true;
+    g.add(crown1);
+
+    const crown2 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.38 * scale, 0), leafMatB);
+    crown2.position.set(0.28 * scale, 1.45 * scale, 0.12 * scale);
+    crown2.castShadow = true;
+    crown2.receiveShadow = true;
+    g.add(crown2);
+
+    const crown3 = new THREE.Mesh(new THREE.IcosahedronGeometry(0.3 * scale, 0), leafMatA);
+    crown3.position.set(-0.26 * scale, 1.35 * scale, -0.15 * scale);
+    crown3.castShadow = true;
+    crown3.receiveShadow = true;
+    g.add(crown3);
+
+    g.position.set(x, 0, z);
+    world.add(g);
+    return g;
+  }
+
+  makeTree(-4.9, -2.3, 1.6);
+  makeTree(-3.5, -4.5, 1.3);
+  makeTree(2.9, -4.7, 1.5);
+  makeTree(6.2, 2.3, 1.4);
+  makeTree(-5.6, 2.9, 1.1);
+
+  // ---------- Grass texture patches (subtle tonal variation) ----------
+  function makeGrassPatch(x, z, r, color, rot) {
+    const geo = new THREE.CircleGeometry(r, 20);
+    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.95 });
+    const m = new THREE.Mesh(geo, mat);
+    m.rotation.x = -Math.PI / 2;
+    m.rotation.z = rot;
+    m.position.set(x, 0.006, z);
+    m.receiveShadow = true;
+    world.add(m);
+  }
+  makeGrassPatch(-3.0, 1.4, 1.2, COLORS.grassPatchA, 0.3);
+  makeGrassPatch(4.3, 1.0, 1.0, COLORS.grassPatchB, 1.1);
+  makeGrassPatch(-4.7, -1.1, 1.3, COLORS.grassPatchA, 0.6);
+  makeGrassPatch(6.2, -1.0, 1.1, COLORS.grassPatchB, 0.9);
+  makeGrassPatch(-0.5, -3.0, 1.6, COLORS.grassPatchA, 0.2);
+  makeGrassPatch(3.5, -3.3, 1.4, COLORS.grassPatchB, 1.4);
+
+  // ---------- Small rocks (natural detail) ----------
+  function makeRock(x, z, scale = 1) {
+    const mat = new THREE.MeshStandardMaterial({ color: COLORS.rock, roughness: 0.9, flatShading: true });
+    const rock = new THREE.Mesh(new THREE.IcosahedronGeometry(0.14 * scale, 0), mat);
+    rock.position.set(x, 0.08 * scale, z);
+    rock.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+    rock.castShadow = true;
+    rock.receiveShadow = true;
+    world.add(rock);
+  }
+  makeRock(-2.2, 2.1, 1.0);
+  makeRock(-1.9, 2.35, 0.6);
+  makeRock(3.6, 2.2, 0.8);
+  makeRock(-4.0, -0.6, 0.9);
+
+  // ---------- Soft ground shadow blobs (premium stylized grounding) ----------
+  function makeShadowTexture() {
+    const size = 128;
+    const cnv = document.createElement('canvas');
+    cnv.width = size; cnv.height = size;
+    const ctx = cnv.getContext('2d');
+    const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    grad.addColorStop(0, 'rgba(35,38,32,0.30)');
+    grad.addColorStop(0.7, 'rgba(35,38,32,0.13)');
+    grad.addColorStop(1, 'rgba(35,38,32,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+    const tex = new THREE.CanvasTexture(cnv);
+    tex.needsUpdate = true;
+    return tex;
+  }
+  const groundShadowTex = makeShadowTexture();
+  function addSoftShadow(x, z, sx, sz) {
+    const mat = new THREE.MeshBasicMaterial({ map: groundShadowTex, transparent: true, depthWrite: false });
+    const geo = new THREE.PlaneGeometry(1, 1);
+    const m = new THREE.Mesh(geo, mat);
+    m.rotation.x = -Math.PI / 2;
+    m.scale.set(sx, sz, 1);
+    m.position.set(x, 0.009, z);
+    world.add(m);
+  }
+  addSoftShadow(house.position.x + 0.2, house.position.z + 0.1, 3.6, 3.2);
+  addSoftShadow(battery.position.x, battery.position.z, 1.1, 1.0);
+  addSoftShadow(gridPole.position.x, gridPole.position.z, 0.6, 0.6);
+
+  // =====================================================
+  // SUN — visual source for the energy animation
+  // Placed directly above the house (slightly set back), clearly separated
+  // from the roof/panels vertically so it reads in the default camera view
+  // =====================================================
+  const sunPos = new THREE.Vector3(-1.9, 8.8, -4.0);
+
+  const sunGroup = new THREE.Group();
+  sunGroup.position.copy(sunPos);
+  world.add(sunGroup);
+
+  const sunCore = new THREE.Mesh(
+    new THREE.SphereGeometry(0.34, 24, 24),
+    new THREE.MeshBasicMaterial({ color: COLORS.sunCore })
+  );
+  sunGroup.add(sunCore);
+
+  function makeGlowTexture(hexColor) {
+    const size = 128;
+    const cnv = document.createElement('canvas');
+    cnv.width = size; cnv.height = size;
+    const ctx = cnv.getContext('2d');
+    const c = new THREE.Color(hexColor);
+    const r = Math.round(c.r * 255), g = Math.round(c.g * 255), b = Math.round(c.b * 255);
+    const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    grad.addColorStop(0, `rgba(${r},${g},${b},0.85)`);
+    grad.addColorStop(0.4, `rgba(${r},${g},${b},0.35)`);
+    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+    const tex = new THREE.CanvasTexture(cnv);
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  const sunGlowTex = makeGlowTexture(COLORS.sunGlow);
+  const sunHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: sunGlowTex, color: COLORS.sunGlow, transparent: true,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  sunHalo.scale.set(2.8, 2.8, 1);
+  sunGroup.add(sunHalo);
+
+  const sunHaloOuter = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: sunGlowTex, color: COLORS.sunGlow, transparent: true, opacity: 0.5,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  sunHaloOuter.scale.set(4.6, 4.6, 1);
+  sunGroup.add(sunHaloOuter);
+
+  const sunLight = new THREE.PointLight(COLORS.sunGlow, 0.5, 12, 2);
+  sunGroup.add(sunLight);
+
+  // =====================================================
+  // ENERGY PATH — Sun -> Solar Panels -> Inverter -> Battery -> House
+  // (panelNode was already computed from the actual panel mount transform
+  // above, so this path always attaches to the visible panel bank)
+  // =====================================================
+  const invNode = invIn.clone();
+  const battNode = new THREE.Vector3(battery.position.x, 0.1 + 0.78, battery.position.z);
+  const houseNode = new THREE.Vector3(house.position.x, 1.2, 1.35);
+
+  function makeGuidePath(points, color, opacity) {
+    const curve = new THREE.CatmullRomCurve3(points);
+    const geo = new THREE.TubeGeometry(curve, 40, 0.014, 8, false);
+    const mat = new THREE.MeshBasicMaterial({
+      color, transparent: true, opacity
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    world.add(mesh);
+    return curve;
+  }
+
+  // Sun -> Panels (subtle warm path — the orange particles travel this)
+  const sunToPanelMid = sunPos.clone().add(panelNode).multiplyScalar(0.5);
+  sunToPanelMid.y += 0.5;
+  const sunToPanelCurve = makeGuidePath(
+    [sunPos, sunToPanelMid, panelNode],
+    COLORS.sunGlow, 0.26
+  );
+
+  // Panels -> Inverter (matches the rendered wire exactly, teal)
+  const panelToInvCurve = new THREE.CatmullRomCurve3([
+    panelNode,
+    new THREE.Vector3(-0.75, 2.15, 0.05),
+    invNode
+  ]);
+
+  // Inverter -> Battery (matches the rendered wire exactly, teal)
+  const invToBattCurve = new THREE.CatmullRomCurve3([
+    invNode,
+    new THREE.Vector3(2.1, 1.35, 0.75),
+    battNode
+  ]);
+
+  // Battery -> House (subtle teal/electric path)
+  const battToHouseMid = battNode.clone().add(houseNode).multiplyScalar(0.5);
+  battToHouseMid.y += 0.35;
+  const battToHouseCurve = makeGuidePath(
+    [battNode, battToHouseMid, houseNode],
+    COLORS.accent, 0.3
+  );
+
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+  const clock = new THREE.Clock();
+  const tmpColor = new THREE.Color();
+
+  // =====================================================
+  // ORANGE ENERGY PARTICLES — sunlight streaming from the sun to the panels
+  // =====================================================
+  const orangeGlowTex = makeGlowTexture(COLORS.sunOrange);
+  const streamCount = 4;
+  const streamDuration = 1.7; // seconds for one particle to cross sun -> panel
+  const streamParticles = [];
+
+  for (let i = 0; i < streamCount; i++) {
+    const grp = new THREE.Group();
+
+    const core = new THREE.Mesh(
+      new THREE.SphereGeometry(0.045, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xFFE3B0 })
+    );
+    grp.add(core);
+
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: orangeGlowTex, color: COLORS.sunOrange, transparent: true,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    halo.scale.set(0.32, 0.32, 1);
+    grp.add(halo);
+
+    world.add(grp);
+    streamParticles.push({ group: grp, phase: (i / streamCount) * streamDuration });
+  }
+
+  function updateOrangeStream() {
+    const t = clock.getElapsedTime();
+    for (let i = 0; i < streamParticles.length; i++) {
+      const sp = streamParticles[i];
+      const local = (t + sp.phase) % streamDuration;
+      const travelT = local / streamDuration;
+      const eased = easeInOutCubic(travelT);
+      const pos = sunToPanelCurve.getPointAt(eased);
+      sp.group.position.copy(pos);
+      // fade in/out gently at the very start and end of each particle's run
+      const fade = Math.min(1, travelT * 6, (1 - travelT) * 6);
+      sp.group.scale.setScalar(0.55 + 0.45 * fade);
+    }
+  }
+
+  // =====================================================
+  // SOLAR PANEL ACTIVATION PULSE — soft warm flash when energy arrives
+  // =====================================================
+  const panelPulseMat = panelBodies.map((mesh) => mesh.material);
+  const pulsePeriod = streamDuration; // one soft pulse per incoming particle cycle
+  const pulseRiseFraction = 0.4; // 0..1 of the flash window spent rising
+
+  function updatePanelPulse() {
+    const t = clock.getElapsedTime() % pulsePeriod;
+    const flashWindow = pulsePeriod * 0.42;
+    let intensity = 0;
+    if (t < flashWindow) {
+      const p = t / flashWindow;
+      intensity = p < pulseRiseFraction
+        ? easeInOutCubic(p / pulseRiseFraction)
+        : easeInOutCubic(1 - (p - pulseRiseFraction) / (1 - pulseRiseFraction));
+    }
+    for (let i = 0; i < panelPulseMat.length; i++) {
+      const mat = panelPulseMat[i];
+      mat.emissive.set(COLORS.sunOrange);
+      mat.emissiveIntensity = intensity * 0.55;
+    }
+  }
+
+  // =====================================================
+  // MAIN ENERGY PARTICLE — continues Panels -> Inverter -> Battery -> House
+  // =====================================================
+  const particleGroup = new THREE.Group();
+  world.add(particleGroup);
+
+  const particleCore = new THREE.Mesh(
+    new THREE.SphereGeometry(0.055, 16, 16),
+    new THREE.MeshBasicMaterial({ color: 0xFFFFFF })
+  );
+  particleGroup.add(particleCore);
+
+  const particleGlowTex = makeGlowTexture(0xFFFFFF);
+  const particleHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: particleGlowTex, color: COLORS.sunOrange, transparent: true,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  particleHalo.scale.set(0.55, 0.55, 1);
+  particleGroup.add(particleHalo);
+
+  const particleLight = new THREE.PointLight(COLORS.sunOrange, 0.7, 2.2, 2);
+  particleGroup.add(particleLight);
+
+  const colorWarm = new THREE.Color(COLORS.sunOrange);
+  const colorElectric = new THREE.Color(COLORS.accentLight);
+
+  // Each leg: curve + duration (seconds) + color at start/end of that leg.
+  // The first leg fades from warm (just activated by sunlight) to electric,
+  // representing sunlight becoming usable electricity as it leaves the panels.
+  const legs = [
+    { curve: panelToInvCurve, duration: 1.2, from: colorWarm, to: colorElectric },
+    { curve: invToBattCurve, duration: 1.2, from: colorElectric, to: colorElectric },
+    { curve: battToHouseCurve, duration: 1.5, from: colorElectric, to: colorElectric }
+  ];
+  const pauseDuration = 0.35;
+  const legTotal = legs.reduce((s, l) => s + l.duration + pauseDuration, 0);
+
+  function updateParticle() {
+    const elapsed = clock.getElapsedTime() % legTotal;
+    let t = elapsed;
+    for (let i = 0; i < legs.length; i++) {
+      const leg = legs[i];
+      const segmentTime = leg.duration + pauseDuration;
+      if (t <= segmentTime) {
+        const travelT = Math.min(t / leg.duration, 1);
+        const eased = easeInOutCubic(travelT);
+        const pos = leg.curve.getPointAt(eased);
+        particleGroup.position.copy(pos);
+        tmpColor.copy(leg.from).lerp(leg.to, eased);
+        particleCore.material.color.set(0xFFFFFF);
+        particleHalo.material.color.copy(tmpColor);
+        particleLight.color.copy(tmpColor);
+        return;
+      }
+      t -= segmentTime;
+    }
+  }
+
+  // =====================================================
+  // BATTERY CHARGING REACTION — internal level rises + label appears
+  // exactly while the particle is arriving at / paused on the battery
+  // (end of leg[1] "inverter -> battery"), then eases back down as the
+  // particle departs toward the house. Purely additive to the existing
+  // particle timeline above; nothing about that timeline is changed.
+  // =====================================================
+  const battArrivalTime = legs[0].duration + pauseDuration + legs[1].duration; // 2.75s into the cycle
+  const battRampIn = 0.4;   // anticipation as the particle approaches
+  const battHold = pauseDuration; // matches the particle's pause at the battery
+  const battRampOut = 0.6;  // gentle settle as the particle leaves for the house
+  const battIdleLevel = 0.12;
+  const battFullLevel = 0.82;
+
+  function updateBatteryCharge() {
+    const elapsed = clock.getElapsedTime() % legTotal;
+    const start = battArrivalTime - battRampIn;
+    const end = battArrivalTime + battHold + battRampOut;
+
+    let level = battIdleLevel;
+    let glow = 0;
+    let labelOpacity = 0;
+
+    if (elapsed >= start && elapsed <= end) {
+      const local = elapsed - start;
+      if (local < battRampIn) {
+        const p = easeInOutCubic(local / battRampIn);
+        level = battIdleLevel + p * (battFullLevel - battIdleLevel);
+        glow = p;
+        labelOpacity = Math.min(1, local / (battRampIn * 0.6));
+      } else if (local < battRampIn + battHold) {
+        level = battFullLevel;
+        glow = 1;
+        labelOpacity = 1;
+      } else {
+        const p = easeInOutCubic((local - battRampIn - battHold) / battRampOut);
+        level = battFullLevel - p * (battFullLevel - battIdleLevel);
+        glow = 1 - p;
+        labelOpacity = Math.max(0, 1 - p / 0.7);
+      }
+    }
+
+    battFill.scale.y = Math.max(0.02, level);
+    battFill.position.y = battFillBottomY + (battFillMaxHeight * battFill.scale.y) / 2;
+    battFillMat.emissiveIntensity = 0.35 + glow * 0.55;
+    chargingLabel.material.opacity = labelOpacity;
+  }
+
+  // =====================================================
+  // HOUSE POWERING REACTION — windows glow warm, the small porch/appliance
+  // indicators light up, and the "POWERING HOME" label appears, exactly
+  // when the particle finishes the final leg (battery -> house). Purely
+  // additive on top of the existing particle timeline; nothing about that
+  // timeline is changed. Uses a wraparound-safe window since this final
+  // stage sits right at the end of the loop, just before it repeats.
+  // =====================================================
+  const houseArrivalTime = legs[0].duration + pauseDuration + legs[1].duration + pauseDuration + legs[2].duration; // 4.6s into the cycle
+  const houseRampIn = 0.4;
+  const houseHold = pauseDuration;
+  const houseRampOut = 0.6;
+  const houseWarmGlow = new THREE.Color(0xFFE3A0);
+
+  function updateHousePower() {
+    const elapsed = clock.getElapsedTime() % legTotal;
+    let local = elapsed - (houseArrivalTime - houseRampIn);
+    if (local < 0) local += legTotal;
+    const totalWindow = houseRampIn + houseHold + houseRampOut;
+
+    let glow = 0;
+    let labelOpacity = 0;
+
+    if (local <= totalWindow) {
+      if (local < houseRampIn) {
+        const p = easeInOutCubic(local / houseRampIn);
+        glow = p;
+        labelOpacity = Math.min(1, local / (houseRampIn * 0.6));
+      } else if (local < houseRampIn + houseHold) {
+        glow = 1;
+        labelOpacity = 1;
+      } else {
+        const p = easeInOutCubic((local - houseRampIn - houseHold) / houseRampOut);
+        glow = 1 - p;
+        labelOpacity = Math.max(0, 1 - p / 0.7);
+      }
+    }
+
+    for (let i = 0; i < houseGlassMeshes.length; i++) {
+      const mat = houseGlassMeshes[i].material;
+      mat.emissive.copy(houseWarmGlow);
+      mat.emissiveIntensity = glow * 0.5;
+    }
+    for (let i = 0; i < housePowerLights.length; i++) {
+      housePowerLights[i].emissiveIntensity = glow * 0.9;
+    }
+    poweringLabel.material.opacity = labelOpacity;
+  }
+
+  // =====================================================
+  // Center the whole composition
+  // =====================================================
+  const bbox = new THREE.Box3().setFromObject(world);
+  const center = bbox.getCenter(new THREE.Vector3());
+  world.position.x -= center.x;
+  world.position.z -= center.z;
+
+  // ---------- Minimal drag-to-orbit control (no external addon needed) ----------
+  const target = new THREE.Vector3(0, 1.1, 0);
+  const startOffset = new THREE.Vector3().subVectors(camera.position, target);
+  let radius = startOffset.length();
+  let theta = Math.atan2(startOffset.x, startOffset.z);      // azimuth
+  let phi = Math.acos(THREE.MathUtils.clamp(startOffset.y / radius, -1, 1)); // polar
+
+  let targetTheta = theta;
+  let targetPhi = phi;
+
+  const minPhi = THREE.MathUtils.degToRad(35);
+  const maxPhi = THREE.MathUtils.degToRad(80);
+  const minRadius = 8;
+  const maxRadius = 18;
+
+  let dragging = false;
+  let lastX = 0, lastY = 0;
+
+  function updateCameraFromAngles() {
+    phi = THREE.MathUtils.clamp(phi, minPhi, maxPhi);
+    const sinPhi = Math.sin(phi);
+    camera.position.set(
+      target.x + radius * sinPhi * Math.sin(theta),
+      target.y + radius * Math.cos(phi),
+      target.z + radius * sinPhi * Math.cos(theta)
+    );
+    camera.lookAt(target);
+  }
+
+  function onPointerDown(e) {
+    dragging = true;
+    const p = e.touches ? e.touches[0] : e;
+    lastX = p.clientX;
+    lastY = p.clientY;
+  }
+  function onPointerMove(e) {
+    if (!dragging) return;
+    const p = e.touches ? e.touches[0] : e;
+    const dx = p.clientX - lastX;
+    const dy = p.clientY - lastY;
+    lastX = p.clientX;
+    lastY = p.clientY;
+    targetTheta -= dx * 0.006;
+    targetPhi -= dy * 0.006;
+    targetPhi = THREE.MathUtils.clamp(targetPhi, minPhi, maxPhi);
+    if (e.touches) e.preventDefault();
+  }
+  function onPointerUp() { dragging = false; }
+  function onWheel(e) {
+    radius = THREE.MathUtils.clamp(radius + e.deltaY * 0.01, minRadius, maxRadius);
+    e.preventDefault();
+  }
+
+  canvas.addEventListener('mousedown', onPointerDown);
+  window.addEventListener('mousemove', onPointerMove);
+  window.addEventListener('mouseup', onPointerUp);
+  canvas.addEventListener('touchstart', onPointerDown, { passive: true });
+  canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+  canvas.addEventListener('touchend', onPointerUp);
+  canvas.addEventListener('wheel', onWheel, { passive: false });
+
+  // ---------- "Explore the Energy" CTA -> nudges the existing orbit ----------
+  const exploreBtn = document.getElementById('explore-cta');
+  if (exploreBtn) {
+    exploreBtn.addEventListener('click', () => {
+      targetTheta += Math.PI / 2.3;
+      targetPhi = THREE.MathUtils.clamp(targetPhi - 0.1, minPhi, maxPhi);
+    });
+  }
+
+  updateCameraFromAngles();
+
+  // ---------- Resize ----------
+  function resize() {
+    const w = hero.clientWidth;
+    const h = hero.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- Render loop (static scene, no scripted animation; only user-driven drag updates the view) ----------
+  function render() {
+    theta += (targetTheta - theta) * 0.12;
+    phi += (targetPhi - phi) * 0.12;
+    updateCameraFromAngles();
+    updateOrangeStream();
+    updatePanelPulse();
+    updateParticle();
+    updateBatteryCharge();
+    updateHousePower();
+    renderer.render(scene, camera);
+    requestAnimationFrame(render);
+  }
+  render();
+})();
+
+</script>
+</body>
+</html>

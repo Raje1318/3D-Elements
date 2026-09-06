@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CATROBOTICS — Engineering Intelligent Automation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #FAFAF8;
+      --fg:     #111111;
+      --yellow: #F2D400;
+      --red:    #D81E27;
+      --muted:  #6b6b6b;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      overflow-x: hidden;
+    }
+
+    /* ── Blueprint grid ───────────────────────────────── */
+    .hero {
+      display: flex;
+      min-height: 100dvh;
+      width: 100%;
+      background-color: var(--bg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ── Left content ─────────────────────────────────── */
+    .hero-left {
+      width: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 5rem 0 6rem;
+      z-index: 10;
+    }
+
+    h1 {
+      font-size: clamp(2.8rem, 5vw, 4.6rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
+      margin-bottom: 1.75rem;
+    }
+    h1 .dot { color: var(--red); }
+
+    .desc {
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.75;
+      max-width: 400px;
+      font-weight: 500;
+      margin-bottom: 2.25rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: .875rem;
+      margin-bottom: 3.5rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      padding: .9rem 2rem;
+      background: var(--yellow);
+      color: var(--fg);
+      font-weight: 700;
+      font-size: .72rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(242,212,0,.3);
+      transition: opacity .2s;
+      font-family: inherit;
+    }
+    .btn-primary:hover { opacity: .88; }
+
+    .btn-outline {
+      padding: .9rem 2rem;
+      background: transparent;
+      color: var(--fg);
+      font-weight: 700;
+      font-size: .72rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      border: 2px solid rgba(17,17,17,.18);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background .2s;
+      font-family: inherit;
+    }
+    .btn-outline:hover { background: rgba(17,17,17,.05); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      border-top: 1px solid rgba(17,17,17,.1);
+      padding-top: 1.75rem;
+    }
+    .stat-num   { font-size: 2rem; font-weight: 900; }
+    .stat-label {
+      font-size: .65rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: .15em; margin-top: .2rem;
+    }
+
+    /* ── Right / SVG cell ─────────────────────────────── */
+    .hero-right {
+      width: 50%;
+      height: 100dvh;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #cell {
+      width: 100%;
+      height: 100%;
+      max-height: 82vh;
+      overflow: visible;
+      filter: drop-shadow(0 20px 50px rgba(0,0,0,.09));
+    }
+
+    /* ── Floating control panel ───────────────────────── */
+    .cp {
+      position: absolute;
+      bottom: 2.75rem;
+      right: 2.75rem;
+      background: rgba(17,17,17,.96);
+      backdrop-filter: blur(20px);
+      border-radius: 14px;
+      padding: 1.2rem;
+      border: 1px solid rgba(255,255,255,.09);
+      box-shadow: 0 25px 60px rgba(0,0,0,.45);
+      color: #fff;
+      width: 232px;
+      user-select: none;
+      z-index: 20;
+    }
+
+    .cp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.1rem;
+    }
+    .cp-title {
+      font-size: .58rem; font-weight: 700;
+      color: rgba(255,255,255,.38); text-transform: uppercase; letter-spacing: .14em;
+    }
+    .cp-badge {
+      display: flex; align-items: center; gap: .4rem;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 6px;
+      padding: .3rem .55rem;
+    }
+    .cp-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 8px var(--red);
+      transition: background .35s, box-shadow .35s;
+      flex-shrink: 0;
+    }
+    .cp-status-text {
+      font-size: .58rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: rgba(255,255,255,.78);
+    }
+
+    /* Three industrial control buttons */
+    .cp-btns { display: grid; grid-template-columns: repeat(3,1fr); gap: .45rem; margin-bottom: 1.1rem; }
+
+    .cp-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: .65rem .4rem;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 8px;
+      color: rgba(255,255,255,.4);
+      cursor: pointer;
+      transition: background .18s, border-color .18s, color .18s;
+      font-family: inherit;
+    }
+    .cp-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .cp-btn.start:hover { border-color: rgba(242,212,0,.5); }
+    .cp-btn.start:hover .cp-btn-icon { color: var(--yellow); }
+    .cp-btn.reset:hover  { border-color: rgba(216,30,39,.5); }
+    .cp-btn.reset:hover  .cp-btn-icon { color: var(--red); }
+    .cp-btn:disabled, .cp-btn.off { opacity: .35; pointer-events: none; }
+
+    .cp-btn-icon  { font-size: .9rem; margin-bottom: .3rem; line-height: 1; transition: color .18s; }
+    .cp-btn-label { font-size: .52rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+
+    .cp-footer {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top: .9rem;
+    }
+    .cp-products-lbl { font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .14em; color: rgba(255,255,255,.28); }
+    .cp-counter {
+      font-size: 2.1rem; font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      color: var(--yellow);
+      line-height: 1;
+      letter-spacing: -.04em;
+    }
+
+    /* pulse keyframe for Initializing dot */
+    @keyframes dotpulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .pulsing { animation: dotpulse .9s infinite; }
+
+    /* ── Mobile ───────────────────────────────────────── */
+    @media (max-width: 767px) {
+      .hero { flex-direction: column; min-height: 160vh; }
+      .hero-left { width: 100%; padding: 5.5rem 1.75rem 2rem; }
+      .hero-right { width: 100%; height: 70vmax; }
+      .cp { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<section class="hero">
+
+  <!-- ═══ SCENE ══════════════════════════════════════════ -->
+  <div class="hero-right" style="width:100%;">
+    <svg id="cell" viewBox="-350 -100 700 650" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    <!-- Floating HMI panel -->
+    <div class="cp">
+      <div class="cp-header">
+        <span class="cp-title">Machine Status</span>
+        <div class="cp-badge">
+          <div class="cp-dot"  id="dot"></div>
+          <span class="cp-status-text" id="statusTxt">Offline</span>
+        </div>
+      </div>
+      <div class="cp-btns">
+        <button class="cp-btn start" id="btnStart" onclick="ctrlStart()">
+          <span class="cp-btn-icon">&#9654;</span>
+          <span class="cp-btn-label">Start</span>
+        </button>
+        <button class="cp-btn off"  id="btnPause" onclick="ctrlPause()">
+          <span class="cp-btn-icon">&#9646;&#9646;</span>
+          <span class="cp-btn-label">Pause</span>
+        </button>
+        <button class="cp-btn reset" onclick="ctrlReset()">
+          <span class="cp-btn-icon">&#8635;</span>
+          <span class="cp-btn-label">Reset</span>
+        </button>
+      </div>
+      <div class="cp-footer">
+        <span class="cp-products-lbl">Products</span>
+        <span class="cp-counter" id="ctr">000</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- GSAP from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════════
+   ISOMETRIC MATH
+═══════════════════════════════════════════════════════════════════════════ */
+const SQRT3_2 = 0.866025;
+const NS = 'http://www.w3.org/2000/svg';
+
+function iX(x, y)        { return (x - y) * SQRT3_2; }
+function iY(x, y, z = 0) { return (x + y) * 0.5 - z; }
+function iPt(x, y, z = 0){ return iX(x,y) + ',' + iY(x,y,z); }
+
+function makePoly(pts, fill) {
+  const el = document.createElementNS(NS, 'polygon');
+  el.setAttribute('points', pts);
+  el.setAttribute('fill', fill);
+  return el;
+}
+
+/**
+ * Creates an isometric box <g> with three visible faces.
+ * Returns { g, polys: [left, right, top] }
+ */
+function isoBox(x, y, z, w, d, h, col) {
+  const g = document.createElementNS(NS, 'g');
+
+  const left  = [[x,y+d,z],[x+w,y+d,z],[x+w,y+d,z+h],[x,y+d,z+h]];
+  const right = [[x+w,y,z],[x+w,y+d,z],[x+w,y+d,z+h],[x+w,y,z+h]];
+  const top   = [[x,y,z+h],[x+w,y,z+h],[x+w,y+d,z+h],[x,y+d,z+h]];
+  const pts   = arr => arr.map(p => iPt(p[0],p[1],p[2])).join(' ');
+
+  const pL = makePoly(pts(left),  col.L);
+  const pR = makePoly(pts(right), col.R);
+  const pT = makePoly(pts(top),   col.T);
+  g.append(pL, pR, pT);
+  return { g, polys: [pL, pR, pT] };
+}
+
+/** Recolor all three faces of a previously created box */
+function recolor(box, col) {
+  box.polys[0].setAttribute('fill', col.L);
+  box.polys[1].setAttribute('fill', col.R);
+  box.polys[2].setAttribute('fill', col.T);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COLOR PALETTES
+═══════════════════════════════════════════════════════════════════════════ */
+const C = {
+  machine: { T:'#f8f8f8', L:'#e5e5e5', R:'#d4d4d4' },
+  dark:    { T:'#2a2a2a', L:'#1a1a1a', R:'#111111' },
+  yellow:  { T:'#ffe533', L:'#F2D400', R:'#ccb300' },
+  red:     { T:'#f02832', L:'#D81E27', R:'#b31720' },
+  green:   { T:'#10b981', L:'#059669', R:'#047857' },
+  wood:    { T:'#e6c280', L:'#ccaa66', R:'#b3914d' },
+  product: { T:'#ffffff', L:'#f0f0f0', R:'#e0e0e0' },
+  belt:    { T:'#333333', L:'#222222', R:'#111111' },
+  base:    { T:'#f0f0f0', L:'#e0e0e0', R:'#cccccc' },
+  fence:   { T:'#e0e0e0', L:'#d4d4d4', R:'#cccccc' },
+};
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUILD SVG SCENE
+═══════════════════════════════════════════════════════════════════════════ */
+const svg = document.getElementById('cell');
+
+function add(x,y,z,w,d,h,col,parent) {
+  const b = isoBox(x,y,z,w,d,h,col);
+  (parent || svg).appendChild(b.g);
+  return b;
+}
+
+// ── Base plate
+add(-50,-50,-10, 450,450,10, C.base);
+
+// ── Safety fence (back two walls)
+const fenceGrp = document.createElementNS(NS,'g');
+fenceGrp.setAttribute('opacity','0.35');
+svg.appendChild(fenceGrp);
+add(-45,-45,0, 440,5,40, C.fence, fenceGrp);
+add(-45,-45,0, 5,440,40, C.fence, fenceGrp);
+
+// ── Control cabinet + signal tower ──────────────────────────────────────────
+const cabinetGrp = document.createElementNS(NS,'g');
+cabinetGrp.style.cursor = 'pointer';
+svg.appendChild(cabinetGrp);
+add(20,20,0, 60,40,100, C.dark, cabinetGrp);     // cabinet body
+add(40,30,100, 10,10,5, C.machine, cabinetGrp);   // tower mount
+const towerRed    = add(40,30,105, 10,10,15, C.red,   cabinetGrp);
+const towerYellow = add(40,30,120, 10,10,15, C.dark,  cabinetGrp);
+const towerGreen  = add(40,30,135, 10,10,15, C.dark,  cabinetGrp);
+
+// ── Conveyor ────────────────────────────────────────────────────────────────
+const convGrp = document.createElementNS(NS,'g');
+convGrp.style.cursor = 'ew-resize';
+svg.appendChild(convGrp);
+add(0,200,0, 400,50,40, C.machine, convGrp);   // frame
+add(5,205,40, 390,40,2, C.belt, convGrp);      // belt surface
+
+// Conveyor belt stripe animation (CSS keyframes on a rect)
+const beltMask = document.createElementNS(NS,'clipPath');
+beltMask.id = 'beltClip';
+const beltClipRect = document.createElementNS(NS,'rect');
+const beltX  = iX(5,205),   beltY  = iY(5,205,42);
+const beltX2 = iX(395,205), beltY2 = iY(395,205,42);
+const beltX3 = iX(395,245), beltY3 = iY(395,245,42);
+const beltX4 = iX(5,245),   beltY4 = iY(5,245,42);
+const beltPoly = document.createElementNS(NS,'polygon');
+beltPoly.setAttribute('points', `${beltX},${beltY} ${beltX2},${beltY2} ${beltX3},${beltY3} ${beltX4},${beltY4}`);
+beltMask.appendChild(beltPoly);
+svg.appendChild(beltMask);
+
+// Moving stripes on belt
+const stripesGrp = document.createElementNS(NS,'g');
+stripesGrp.setAttribute('clip-path','url(#beltClip)');
+stripesGrp.setAttribute('opacity','0');
+svg.appendChild(stripesGrp);
+for (let i = 0; i < 12; i++) {
+  const sl = document.createElementNS(NS,'line');
+  const sx = 10 + i * 35;
+  sl.setAttribute('x1', iX(sx,205)); sl.setAttribute('y1', iY(sx,205,42));
+  sl.setAttribute('x2', iX(sx,245)); sl.setAttribute('y2', iY(sx,245,42));
+  sl.setAttribute('stroke','rgba(255,255,255,0.07)');
+  sl.setAttribute('stroke-width','3');
+  stripesGrp.appendChild(sl);
+}
+
+// ── Vision gantry ────────────────────────────────────────────────────────────
+const gantryGrp = document.createElementNS(NS,'g');
+gantryGrp.style.cursor = 'crosshair';
+svg.appendChild(gantryGrp);
+add(125,190,0, 10,10,100, C.machine, gantryGrp);  // left pole
+add(125,250,0, 10,10,100, C.machine, gantryGrp);  // right pole
+add(120,190,100, 20,70,10, C.dark, gantryGrp);    // crossbar
+add(125,220,90, 10,10,10, C.machine, gantryGrp);  // camera body
+
+// Scan beam
+const scanGrp = document.createElementNS(NS,'g');
+scanGrp.style.opacity = '0';
+gantryGrp.appendChild(scanGrp);
+[
+  [`${iPt(130,225,90)} ${iPt(110,205,42)} ${iPt(150,205,42)}`, 'rgba(16,185,129,.18)'],
+  [`${iPt(130,225,90)} ${iPt(150,205,42)} ${iPt(150,245,42)}`, 'rgba(16,185,129,.38)'],
+  [`${iPt(130,225,90)} ${iPt(150,245,42)} ${iPt(110,245,42)}`, 'rgba(16,185,129,.55)'],
+  [`${iPt(130,225,90)} ${iPt(110,245,42)} ${iPt(110,205,42)}`, 'rgba(16,185,129,.18)'],
+].forEach(([pts,fill]) => scanGrp.appendChild(makePoly(pts,fill)));
+
+// ── Welding station marker (small platform)
+add(160,200,0, 20,20,5, C.dark);
+
+// ── Pallet
+add(235,275,0, 60,60,10, C.wood);
+
+// ── Placed products (dynamic, appended here)
+const placedGrp = document.createElementNS(NS,'g');
+svg.appendChild(placedGrp);
+
+// ── Robot track
+add(150,100,0, 150,40,10, C.machine);
+
+// ── Moving product (animated)
+const movProdGrp = document.createElementNS(NS,'g');
+movProdGrp.style.opacity = '0';
+svg.appendChild(movProdGrp);
+const movProdBox = isoBox(0,220,40, 10,10,10, C.product);
+movProdGrp.appendChild(movProdBox.g);
+
+// ── Robot assembly ────────────────────────────────────────────────────────────
+const robotXGrp = document.createElementNS(NS,'g');
+robotXGrp.style.cursor = 'pointer';
+svg.appendChild(robotXGrp);
+
+// Yellow base
+const robotBaseBox = isoBox(160,110,10, 30,20,20, C.yellow);
+robotXGrp.appendChild(robotBaseBox.g);
+// Vertical pillar
+const pillarBox = isoBox(170,115,30, 10,10,60, C.machine);
+robotXGrp.appendChild(pillarBox.g);
+// Horizontal Y-beam
+const beamBox = isoBox(170,90,90, 10,240,10, C.machine);
+robotXGrp.appendChild(beamBox.g);
+
+// Y-axis group (slides along beam)
+const robotYGrp = document.createElementNS(NS,'g');
+robotXGrp.appendChild(robotYGrp);
+const carriageBox = isoBox(165,215,85, 20,20,15, C.dark);
+robotYGrp.appendChild(carriageBox.g);
+
+// Z-axis group (moves vertically)
+const robotZGrp = document.createElementNS(NS,'g');
+robotYGrp.appendChild(robotZGrp);
+const rodBox     = isoBox(170,220,60, 10,10,30, C.machine);
+const gripperBox = isoBox(165,215,50, 20,20,10, C.yellow);
+robotZGrp.appendChild(rodBox.g);
+robotZGrp.appendChild(gripperBox.g);
+
+// ── Welding sparks ────────────────────────────────────────────────────────────
+const sparksGrp = document.createElementNS(NS,'g');
+sparksGrp.style.opacity = '0';
+svg.appendChild(sparksGrp);
+const sCx = iX(170,220), sCy = iY(170,220,50);
+[[14,'rgba(249,115,22,.4)'],[9,'rgba(249,115,22,.75)'],[3,'#ffffff']].forEach(([r,fill]) => {
+  const c = document.createElementNS(NS,'circle');
+  c.setAttribute('cx', sCx); c.setAttribute('cy', sCy); c.setAttribute('r', r);
+  c.setAttribute('fill', fill);
+  sparksGrp.appendChild(c);
+});
+// Extra spark rays
+for (let i = 0; i < 5; i++) {
+  const angle = (i / 5) * Math.PI * 2;
+  const len = 8 + Math.random() * 6;
+  const sl = document.createElementNS(NS,'line');
+  sl.setAttribute('x1', sCx); sl.setAttribute('y1', sCy);
+  sl.setAttribute('x2', sCx + Math.cos(angle)*len);
+  sl.setAttribute('y2', sCy + Math.sin(angle)*len);
+  sl.setAttribute('stroke','rgba(249,180,22,.6)');
+  sl.setAttribute('stroke-width','1.2');
+  sparksGrp.appendChild(sl);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════════════════ */
+gsap.registerPlugin(ScrollTrigger);
+
+let state        = 'Offline';   // Offline | Initializing | Running | Paused
+let productCount = 0;
+let cycleTl      = null;
+let initTimer    = null;
+let mobileSetup  = false;
+
+const dotEl     = document.getElementById('dot');
+const statusTxt = document.getElementById('statusTxt');
+const ctrEl     = document.getElementById('ctr');
+const btnStart  = document.getElementById('btnStart');
+const btnPause  = document.getElementById('btnPause');
+
+function updateCounter() {
+  ctrEl.textContent = String(productCount).padStart(3,'0');
+}
+
+/* ── State setter ─────────────────────────────────────────────────────────── */
+function setState(s) {
+  state = s;
+  statusTxt.textContent = s;
+
+  // Dot colour
+  const dotMap = {
+    Offline:      ['#D81E27','#D81E27'],
+    Initializing: ['#3b82f6','#3b82f6'],
+    Running:      ['#10b981','#10b981'],
+    Paused:       ['#f59e0b','#f59e0b'],
+  };
+  const [bg, glow] = dotMap[s];
+  dotEl.style.background  = bg;
+  dotEl.style.boxShadow   = `0 0 9px ${glow}`;
+  dotEl.classList.toggle('pulsing', s === 'Initializing');
+
+  // Tower lights
+  if (s === 'Offline') {
+    recolor(towerRed,    C.red);
+    recolor(towerYellow, C.dark);
+    recolor(towerGreen,  C.dark);
+  } else if (s === 'Initializing' || s === 'Paused') {
+    recolor(towerRed,    C.dark);
+    recolor(towerYellow, C.yellow);
+    recolor(towerGreen,  C.dark);
+  } else if (s === 'Running') {
+    recolor(towerRed,    C.dark);
+    recolor(towerYellow, C.dark);
+    recolor(towerGreen,  C.green);
+  }
+
+  // Control button states
+  btnStart.classList.toggle('off', s === 'Running' || s === 'Initializing');
+  btnPause.classList.toggle('off', s !== 'Running');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRODUCT CYCLE — GSAP TIMELINE
+═══════════════════════════════════════════════════════════════════════════ */
+function createCycle() {
+  if (state !== 'Running') return;
+
+  // Pallet stack position
+  const ix = productCount % 2;
+  const iy = Math.floor(productCount / 2) % 2;
+  const iz = Math.floor(productCount / 4);
+  const pX = 245 + ix * 20,  pY = 285 + iy * 20,  pZ = 10 + iz * 10;
+  const dX = pX - 5 - 160,   dY = pY - 5 - 215,   dZ = pZ + 10 - 60;
+
+  // Reset animated elements to home
+  gsap.set(movProdGrp,  { x:0, y:0, autoAlpha:1 });
+  gsap.set([robotXGrp, robotYGrp, robotZGrp], { x:0, y:0 });
+  gsap.set(scanGrp,     { autoAlpha:0, scaleY:0.08, transformOrigin:'top center', y:0 });
+  gsap.set(sparksGrp,   { autoAlpha:0 });
+
+  const tl = gsap.timeline({
+    onComplete() {
+      if (state !== 'Running') return;
+      // Stamp finished product on pallet
+      const pb = isoBox(pX, pY, pZ, 10,10,10, C.product);
+      placedGrp.appendChild(pb.g);
+      productCount++;
+      updateCounter();
+      createCycle();
+    }
+  });
+
+  cycleTl = tl;
+
+  tl
+    // ── Step 3: Conveyor starts — product moves toward camera
+    .to(movProdGrp,  { x:iX(130,0), y:iY(130,0,0), duration:1.6, ease:'none' }, 'start')
+
+    // ── Step 5: Vision scan beam
+    .to(scanGrp,     { autoAlpha:1, duration:.08 }, 'start+=1.6')
+    .to(scanGrp,     { y:28, scaleY:1, duration:.42 }, 'start+=1.6')
+    .to(scanGrp,     { autoAlpha:0, duration:.1 },  'start+=2.1')
+
+    // ── Product continues past camera
+    .to(movProdGrp,  { x:iX(170,0), y:iY(170,0,0), duration:.55, ease:'none' }, 'start+=2.1')
+
+    // ── Step 4 / 6: Robot arm moves to welding zone
+    .to(robotXGrp,   { x:iX(10,0),  y:iY(10,0,0),  duration:.55 }, 'start+=1.6')
+
+    // ── Step 6: Welding sparks + glow
+    .to(sparksGrp,   { autoAlpha:1, duration:.04, repeat:9, yoyo:true }, 'start+=2.65')
+    .set(sparksGrp,  { autoAlpha:0 })
+
+    // ── Product moves to pickup zone
+    .to(movProdGrp,  { x:iX(260,0), y:iY(260,0,0), duration:1.1, ease:'none' }, 'pick')
+    .to(robotXGrp,   { x:iX(100,0), y:iY(100,0,0), duration:1.1 }, 'pick')
+
+    // Gripper descends to pick
+    .to(robotZGrp,   { y:12,  duration:.3 }, 'pickDown')
+    .to(robotZGrp,   { y:0,   duration:.3 }, 'pickUp')
+
+    // ── Step 7: Move to pallet
+    .to(robotXGrp,   { x:iX(dX,0),  y:iY(dX,0,0),  duration:.55 }, 'drop')
+    .to(robotYGrp,   { x:iX(0,dY),  y:iY(0,dY,0),  duration:.55 }, 'drop')
+    .to(movProdGrp,  { x:iX(pX,pY-220), y:iY(pX,pY-220,pZ-40), duration:.55 }, 'drop')
+
+    // Gripper descends to place
+    .to(robotZGrp,   { y:-dZ, duration:.3 }, 'place')
+    .set(movProdGrp, { autoAlpha:0 })
+    .to(robotZGrp,   { y:0,   duration:.3 }, 'placeUp')
+
+    // Robot returns home
+    .to(robotYGrp,   { x:0, y:0, duration:.5 }, 'home')
+    .to(robotXGrp,   { x:0, y:0, duration:.5 }, 'home');
+
+  return tl;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTROL HANDLERS
+═══════════════════════════════════════════════════════════════════════════ */
+function ctrlStart() {
+  if (state === 'Offline') {
+    // Step 1: animated tower sequence Red→Yellow→Green
+    recolor(towerRed, C.dark);
+    setTimeout(() => recolor(towerYellow, C.yellow), 180);
+    setTimeout(() => {
+      recolor(towerYellow, C.dark);
+      recolor(towerGreen, C.green);
+    }, 680);
+
+    // Step 2: status transitions
+    setState('Initializing');
+    clearTimeout(initTimer);
+    initTimer = setTimeout(() => {
+      setState('Running');
+      createCycle();
+    }, 1500);
+  } else if (state === 'Paused') {
+    setState('Running');
+    if (cycleTl) {
+      gsap.to(cycleTl, { timeScale:1, duration:.45 });
+      cycleTl.resume();
+    }
+  }
+}
+
+function ctrlPause() {
+  if (state !== 'Running') return;
+  setState('Paused');
+  if (cycleTl) {
+    gsap.to(cycleTl, {
+      timeScale: 0,
+      duration: .55,
+      onComplete() { if (state === 'Paused') cycleTl.pause(); }
+    });
+  }
+}
+
+function ctrlReset() {
+  clearTimeout(initTimer);
+  if (cycleTl) { cycleTl.kill(); cycleTl = null; }
+  gsap.killTweensOf([movProdGrp, robotXGrp, robotYGrp, robotZGrp, scanGrp, sparksGrp]);
+
+  // Clear stacked products
+  while (placedGrp.firstChild) placedGrp.removeChild(placedGrp.firstChild);
+  productCount = 0;
+  updateCounter();
+
+  // Return everything to rest position
+  gsap.set(movProdGrp,  { x:0, y:0, autoAlpha:0 });
+  gsap.set([robotXGrp, robotYGrp, robotZGrp], { x:0, y:0 });
+  gsap.set(scanGrp,   { autoAlpha:0, y:0, scaleY:0.08 });
+  gsap.set(sparksGrp, { autoAlpha:0 });
+
+  setState('Offline');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CURSOR INTERACTIONS (desktop)
+═══════════════════════════════════════════════════════════════════════════ */
+// Robot follows cursor slightly
+robotXGrp.addEventListener('mouseenter', () => {
+  gsap.to(robotXGrp, { rotation:2.5, duration:.35, transformOrigin:'50% 50%' });
+});
+robotXGrp.addEventListener('mouseleave', () => {
+  gsap.to(robotXGrp, { rotation:0, duration:.35 });
+});
+
+// Camera pulses scan beam on hover
+gantryGrp.addEventListener('mouseenter', () => {
+  if (state === 'Offline') return;
+  gsap.to(scanGrp, { autoAlpha:1, yoyo:true, repeat:1, duration:.15 });
+});
+
+// Cabinet LEDs blink
+cabinetGrp.addEventListener('mouseenter', () => {
+  [towerRed, towerYellow, towerGreen].forEach(t =>
+    gsap.to(t.g.querySelectorAll('polygon'), { opacity:.35, yoyo:true, repeat:3, duration:.1 })
+  );
+});
+
+// Conveyor speeds up
+convGrp.addEventListener('mouseenter', () => {
+  if (state === 'Running' && cycleTl) gsap.to(cycleTl, { timeScale:1.7, duration:.3 });
+});
+convGrp.addEventListener('mouseleave', () => {
+  if (cycleTl && state === 'Running') gsap.to(cycleTl, { timeScale:1, duration:.3 });
+});
+
+// Placed products glow
+placedGrp.addEventListener('mouseover', e => {
+  const g = e.target.closest('g');
+  if (g && g !== placedGrp) gsap.to(g, { opacity:.7, duration:.2 });
+});
+placedGrp.addEventListener('mouseout', e => {
+  const g = e.target.closest('g');
+  if (g && g !== placedGrp) gsap.to(g, { opacity:1, duration:.2 });
+});
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE SCROLL TRIGGER
+═══════════════════════════════════════════════════════════════════════════ */
+function setupMobileScroll() {
+  if (window.innerWidth >= 768 || mobileSetup) return;
+  mobileSetup = true;
+
+  const pX = 245, pY = 285, pZ = 10;
+  const dX  = pX-5-160, dY = pY-5-215, dZ = pZ+10-60;
+
+  gsap.set(movProdGrp,  { x:0, y:0, autoAlpha:1 });
+  gsap.set([robotXGrp, robotYGrp, robotZGrp], { x:0, y:0 });
+  gsap.set(scanGrp,   { autoAlpha:0, scaleY:0.08, transformOrigin:'top center', y:0 });
+  gsap.set(sparksGrp, { autoAlpha:0 });
+
+  // Progress-based colour updates
+  ScrollTrigger.create({
+    trigger: '#cell',
+    start: 'top 60%',
+    end: 'bottom 20%',
+    onUpdate(self) {
+      const p = self.progress;
+      if (p < .2) {
+        recolor(towerRed, C.red); recolor(towerYellow, C.dark); recolor(towerGreen, C.dark);
+      } else if (p < .6) {
+        recolor(towerRed, C.dark); recolor(towerYellow, C.yellow); recolor(towerGreen, C.dark);
+      } else {
+        recolor(towerRed, C.dark); recolor(towerYellow, C.dark); recolor(towerGreen, C.green);
+      }
+    }
+  });
+
+  gsap.timeline({
+    scrollTrigger: {
+      trigger: '#cell',
+      start: 'top 60%',
+      end:   'bottom 20%',
+      scrub: 1.2,
+    }
+  })
+  // 0–20% → conveyor starts
+  .to(movProdGrp, { x:iX(130,0), y:iY(130,0,0), duration:2 })
+  // 40% → vision scan
+  .to(scanGrp,    { autoAlpha:1, duration:.2 })
+  .to(scanGrp,    { y:28, scaleY:1, duration:.5 })
+  .to(scanGrp,    { autoAlpha:0,  duration:.2 })
+  // 60% → robot picks
+  .to(movProdGrp, { x:iX(170,0), y:iY(170,0,0), duration:1 })
+  .to(robotXGrp,  { x:iX(10,0),  y:iY(10,0,0),  duration:1 }, '<')
+  .to(sparksGrp,  { autoAlpha:1, duration:.1, repeat:5, yoyo:true })
+  .set(sparksGrp, { autoAlpha:0 })
+  // 80% → robot transports to pallet
+  .to(movProdGrp, { x:iX(260,0), y:iY(260,0,0), duration:2 })
+  .to(robotXGrp,  { x:iX(100,0), y:iY(100,0,0), duration:2 }, '<')
+  .to(robotZGrp,  { y:12, duration:.5 })
+  .to(robotZGrp,  { y:0,  duration:.5 })
+  // 100% → product placed
+  .to(robotXGrp,  { x:iX(dX,0), y:iY(dX,0,0), duration:1 })
+  .to(robotYGrp,  { x:iX(0,dY), y:iY(0,dY,0), duration:1 }, '<')
+  .to(movProdGrp, { x:iX(pX,pY-220), y:iY(pX,pY-220,pZ-40), duration:1 }, '<')
+  .to(robotZGrp,  { y:-dZ, duration:.5 })
+  .set(movProdGrp,{ autoAlpha:0 })
+  .to(robotZGrp,  { y:0, duration:.5 });
+}
+
+// Run mobile setup after DOM is ready + on resize
+setupMobileScroll();
+window.addEventListener('resize', setupMobileScroll, { passive: true });
+
+// Init display
+updateCounter();
+</script>
+</body>
+</html>
