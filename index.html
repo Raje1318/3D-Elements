@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>3D Work</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body {
+    width: 100%;
+    background: #0c0c0d;
+    font-family: -apple-system, "Segoe UI", Inter, sans-serif;
+  }
+
+  section.piece {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  section.piece iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .piece-label {
+    position: absolute;
+    left: 22px;
+    bottom: 20px;
+    z-index: 5;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    mix-blend-mode: difference;
+  }
+  .piece-label .n { color: rgba(255, 255, 255, 0.3); font-variant-numeric: tabular-nums; }
+
+  /* Side navigation — jump between pieces */
+  #rail {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  #rail a {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.22);
+    display: block;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+  #rail a:hover,
+  #rail a.active {
+    background: rgba(255, 255, 255, 0.85);
+    transform: scale(1.3);
+  }
+
+  @media (max-width: 720px) {
+    #rail { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav id="rail">
+  <a href="#p1" data-i="0" aria-label="Metallic cube"></a>
+  <a href="#p2" data-i="1" aria-label="Metallic cube — explode"></a>
+  <a href="#p3" data-i="2" aria-label="Solar house"></a>
+  <a href="#p4" data-i="3" aria-label="Automation network"></a>
+  <a href="#p5" data-i="4" aria-label="Automation cell — pick and place"></a>
+  <a href="#p6" data-i="5" aria-label="Automation cell — isometric"></a>
+</nav>
+
+<section class="piece" id="p1">
+  <iframe src="projects/01-metallic-cube.html" loading="lazy" title="Metallic cube"></iframe>
+  <div class="piece-label"><span class="n">01</span><span>Metallic cube</span></div>
+</section>
+
+<section class="piece" id="p2">
+  <iframe src="projects/02-metallic-cube-explode.html" loading="lazy" title="Metallic cube — explode"></iframe>
+  <div class="piece-label"><span class="n">02</span><span>Metallic cube — explode</span></div>
+</section>
+
+<section class="piece" id="p3">
+  <iframe src="projects/03-solar-house.html" loading="lazy" title="Solar house"></iframe>
+  <div class="piece-label"><span class="n">03</span><span>Solar house</span></div>
+</section>
+
+<section class="piece" id="p4">
+  <iframe src="projects/04-mechanical-core.html" loading="lazy" title="Automation network"></iframe>
+  <div class="piece-label"><span class="n">04</span><span>Automation network</span></div>
+</section>
+
+<section class="piece" id="p5">
+  <iframe src="projects/05-automation-network-cell.html" loading="lazy" title="Automation cell — pick and place"></iframe>
+  <div class="piece-label"><span class="n">05</span><span>Pick &amp; place cell</span></div>
+</section>
+
+<section class="piece" id="p6">
+  <iframe src="projects/06-automation-cell-iso.html" loading="lazy" title="Automation cell — isometric"></iframe>
+  <div class="piece-label"><span class="n">06</span><span>Automation cell — isometric</span></div>
+</section>
+
+<script>
+  // Highlight the active rail dot as sections scroll into view.
+  const links = Array.from(document.querySelectorAll('#rail a'));
+  const sections = links.map(l => document.querySelector(l.getAttribute('href')));
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const idx = sections.indexOf(entry.target);
+        links.forEach(l => l.classList.remove('active'));
+        if (idx >= 0) links[idx].classList.add('active');
+      }
+    });
+  }, { threshold: 0.6 });
+
+  sections.forEach(s => s && io.observe(s));
+</script>
+
+</body>
+</html>
